@@ -2,7 +2,7 @@
 
 namespace App\Controller\Api;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController; 
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -14,6 +14,13 @@ use Symfony\Component\Security\Core\Exception\BadCredentialsException;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use App\Repository\UserRepository;
+use Symfony\Component\Security\Core\Security;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Symfony\Component\Security\Core\Authorization\Voter\RoleVoter;
+use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+use  Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+
 
 class UserController extends AbstractController
 {
@@ -22,14 +29,16 @@ class UserController extends AbstractController
     private $userRepository;
     private $passwordHasher;
     private $jwtManager;
+    private $authorizationChecker;
 
-    public function __construct(EntityManagerInterface $entityManager, SerializerInterface $serializer, UserRepository $userRepository, UserPasswordHasherInterface $passwordHasher, JWTTokenManagerInterface $jwtManager)
+    public function __construct(EntityManagerInterface $entityManager, SerializerInterface $serializer, UserRepository $userRepository, UserPasswordHasherInterface $passwordHasher, JWTTokenManagerInterface $jwtManager, AuthorizationCheckerInterface $authorizationChecker)
     {
         $this->entityManager = $entityManager;
         $this->serializer = $serializer;
         $this->userRepository = $userRepository;
         $this->passwordHasher = $passwordHasher;
         $this->jwtManager = $jwtManager;
+        $this->authorizationChecker = $authorizationChecker;
     }
 
     #[Route('/userCreate', name: 'user_create', methods: ['POST'])]
@@ -86,5 +95,26 @@ class UserController extends AbstractController
 
         // Retourner le jeton JWT dans la réponse
         return new JsonResponse(['token' => $token]);
+    }
+
+    #[Route('/api/getUsers', name: 'get_users', methods: ['GET'])]
+    public function getUsers(Request $request,AuthorizationCheckerInterface $authorizationChecker): JsonResponse
+    {
+       
+        // Mettez votre logique pour récupérer les utilisateurs ici
+        $users = $this->getDoctrine()->getRepository(User::class)->findAll();
+
+        // Convertir les utilisateurs en un tableau associatif
+        $usersArray = [];
+        foreach ($users as $user) {
+            $usersArray[] = [
+                'id' => $user->getId(),
+                'email' => $user->getEmail(),
+                'roles' => $user->getRoles(),
+            ];
+        }
+
+        // Retourner la réponse JSON avec tous les utilisateurs
+        return new JsonResponse($usersArray);
     }
 }
