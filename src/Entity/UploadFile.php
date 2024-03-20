@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\UploadFileRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UploadFileRepository::class)]
 class UploadFile
@@ -15,11 +16,11 @@ class UploadFile
     private ?int $id = null;
 
     #[ORM\Column(type: Types::BLOB)]
+    #[Assert\NotBlank]
     private $fichier = null;
 
     #[ORM\ManyToOne(targetEntity: ProjetPreuve::class)]
     private ?ProjetPreuve $projetPreuve ; 
-
 
 
 

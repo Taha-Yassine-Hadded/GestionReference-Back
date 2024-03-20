@@ -18,99 +18,180 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class EmployeController extends AbstractController
 {
-    #[Route('/api/employes', name: 'api_employe_create', methods: ['POST'])]
-    public function create(Request $request, EntityManagerInterface $entityManager): JsonResponse
-    {
-        $data = json_decode($request->getContent(), true);
-    
-        // Vérifier si les données nécessaires sont présentes
-        $requiredFields = ['employeNom', 'employePrenom', 'employeDateNaissance', 'employeAdresse', 'employePrincipaleQualification', 'employeFormation', 'employeAffiliationDesAssociationsGroupPro', 'nationaliteId', 'situationFamilialeId', 'posteId', 'langueIds'];
-        foreach ($requiredFields as $field) {
-            if (!array_key_exists($field, $data) || empty($data[$field])) {
-                return new JsonResponse(['message' => 'Données manquantes ou invalides.'], Response::HTTP_BAD_REQUEST);
-            }
-        }
-    
-        // Créer une nouvelle instance d'Employe
-        $employe = new Employe();
-    
-        // Remplir les propriétés de l'entité avec les données reçues
-        $employe->setEmployeNom($data['employeNom']);
-        $employe->setEmployePrenom($data['employePrenom']);
-        $employe->setEmployeDateNaissance(new \DateTime($data['employeDateNaissance']));
-        $employe->setEmployeAdresse($data['employeAdresse']);
-        $employe->setEmployePrincipaleQualification($data['employePrincipaleQualification']);
-        $employe->setEmployeFormation($data['employeFormation']);
-        $employe->setEmployeAffiliationDesAssociationsGroupPro($data['employeAffiliationDesAssociationsGroupPro']);
-    
-        // Récupérer les entités liées à partir des identifiants fournis
-        $nationalite = $entityManager->getRepository(Nationalite::class)->find($data['nationaliteId']);
-        $situationFamiliale = $entityManager->getRepository(SituationFamiliale::class)->find($data['situationFamilialeId']);
-        $poste = $entityManager->getRepository(Poste::class)->find($data['posteId']);
-    
-        // Vérifier si les entités liées existent
-        if (!$nationalite || !$situationFamiliale || !$poste) {
-            return new JsonResponse(['message' => 'Une ou plusieurs entités liées n\'existent pas.'], Response::HTTP_BAD_REQUEST);
-        }
-    
-        // Affecter les entités liées à l'Employe
+    #[Route('/api/create/employe', name: 'api_employe_create', methods: ['POST'])]
+public function create(Request $request, EntityManagerInterface $entityManager): JsonResponse
+{
+    $data = json_decode($request->getContent(), true);
+
+    $employe = new Employe();
+    $employe->setPersonneContact($data['personneContact']?? null);
+    $employe->setEmployeDateNaissance(new \DateTime($data['employeDateNaissance'] ?? 'now'));
+    $employe->setEmployeAdresse($data['employeAdresse'] ?? null);
+    $employe->setEmployePrincipaleQualification($data['employePrincipaleQualification'] ?? null);
+    $employe->setEmployeFormation($data['employeFormation'] ?? null);
+    $employe->setEmployeAffiliationDesAssociationsGroupPro($data['employeAffiliationDesAssociationsGroupPro'] ?? null);
+
+    // Set the related entities
+    $nationaliteId = $data['nationalite_id'] ?? null;
+    if ($nationaliteId) {
+        $nationalite = $entityManager->getRepository(Nationalite::class)->find($nationaliteId);
         $employe->setNationalite($nationalite);
+    }
+
+    $situationFamilialeId = $data['situationFamiliale_id'] ?? null;
+    if ($situationFamilialeId) {
+        $situationFamiliale = $entityManager->getRepository(SituationFamiliale::class)->find($situationFamilialeId);
         $employe->setSituationFamiliale($situationFamiliale);
+    }
+
+    $posteId = $data['poste_id'] ?? null;
+    if ($posteId) {
+        $poste = $entityManager->getRepository(Poste::class)->find($posteId);
         $employe->setPoste($poste);
-    
-       // Récupérer les langues liées à partir des identifiants fournis
-    $langues = [];
-    foreach ($data['langueIds'] as $langueId) {
+    }
+
+    // Add languages associated with the employee
+    $langueIds = $data['langue_ids'] ?? [];
+    foreach ($langueIds as $langueId) {
         $langue = $entityManager->getRepository(Langue::class)->find($langueId);
-        if ($langue) {
-            $employeLangue = new EmployeLangue();
-            $employeLangue->setEmploye($employe);
-            $employeLangue->setLangue($langue);
-            $entityManager->persist($employeLangue);
-            
-            $langues[] = $langue;
+        if (!$langue) {
+            return new JsonResponse(['message' => 'Langue introuvable'], Response::HTTP_NOT_FOUND);
         }
+        $employe->addLangue($langue);
     }
-    
-        // Persist the entity
-        $entityManager->persist($employe);
-        $entityManager->flush();
-    
-        // Retourner une réponse JSON avec un message de succès
-        return new JsonResponse(['message' => 'Employé créé avec succès'], Response::HTTP_CREATED);
-    }
-    
-    #[Route('/api/employes/{id}', name: 'api_employe_get', methods: ['GET'])]
-    public function show(int $id, EntityManagerInterface $entityManager): JsonResponse
+
+    $entityManager->persist($employe);
+    $entityManager->flush();
+
+    return new JsonResponse('Employé créé avec succès', Response::HTTP_CREATED);
+}
+#[Route('/api/getAll/employes', name: 'api_employe_get_all', methods: ['GET'])]
+    public function getAll(EntityManagerInterface $entityManager): JsonResponse
     {
-        // Récupérer l'employé par son identifiant
-        $employe = $entityManager->getRepository(Employe::class)->find($id);
-
-        // Vérifier si l'employé existe
-        if (!$employe) {
-            // Retourner une réponse JSON avec un message d'erreur si l'employé n'est pas trouvé
-            return new JsonResponse(['message' => 'Employé non trouvé'], Response::HTTP_NOT_FOUND);
+        $employes = $entityManager->getRepository(Employe::class)->findAll();
+        $serializedEmployes = [];
+        foreach ($employes as $employe) {
+            $serializedEmployes[] = $this->serializeEmploye($employe);
+        }
+        return new JsonResponse($serializedEmployes, Response::HTTP_OK);
+    }
+    private function serializeEmploye(Employe $employe): array
+    {
+        $langues = [];
+        foreach ($employe->getLangues() as $langue) {
+            $langues[] = $langue->getLangue();
         }
 
-        // Convertir l'objet Employe en tableau associatif
-        $employeArray = [
+        return [
             'id' => $employe->getId(),
-            'employeNom' => $employe->getEmployeNom(),
-            'employePrenom' => $employe->getEmployePrenom(),
+            'personneContact'=> $employe->getPersonneContact(),
             'employeDateNaissance' => $employe->getEmployeDateNaissance()->format('Y-m-d'),
             'employeAdresse' => $employe->getEmployeAdresse(),
             'employePrincipaleQualification' => $employe->getEmployePrincipaleQualification(),
             'employeFormation' => $employe->getEmployeFormation(),
             'employeAffiliationDesAssociationsGroupPro' => $employe->getEmployeAffiliationDesAssociationsGroupPro(),
-            'nationalite' => $employe->getNationalite(),
-            'situationFamiliale' => $employe->getSituationFamiliale(),
-            'poste' => $employe->getPoste(),
-            'langues' => $employe->getLangues()->toArray(),
+            'nationalite' => $employe->getNationalite() ? $employe->getNationalite()->getId() : null,
+            'situationFamiliale' => $employe->getSituationFamiliale() ? $employe->getSituationFamiliale()->getId() : null,
+            'poste' => $employe->getPoste() ? $employe->getPoste()->getId() : null,
+            'langues' => $this->serializeLangues($employe->getLangues()), // Appel à la méthode serializeLangues pour obtenir les informations sur les langues
+            // Ajoutez d'autres attributs si nécessaire
         ];
-
-        // Retourner une réponse JSON avec les données de l'employé
-        return new JsonResponse($employeArray);
     }
+    #[Route('/api/put/employe/{id}', name: 'api_employe_update', methods: ['PUT'])]
+    public function update(Request $request, EntityManagerInterface $entityManager, $id): JsonResponse
+    {
+        $employe = $entityManager->getRepository(Employe::class)->find($id);
+        if (!$employe) {
+            return new JsonResponse(['message' => 'Employé non trouvé'], Response::HTTP_NOT_FOUND);
+        }
 
-    // Ajoutez les méthodes pour les autres actions CRUD (update, delete, list) en suivant le même schéma que les exemples précédents.
+        $data = json_decode($request->getContent(), true);
+
+        $employe->setPersonneContact($data['personneContact'] ?? $employe->getPersonneContact());
+        $employe->setEmployeDateNaissance(new \DateTime($data['employeDateNaissance'] ?? $employe->getEmployeDateNaissance()));
+        $employe->setEmployeAdresse($data['employeAdresse'] ?? $employe->getEmployeAdresse());
+        $employe->setEmployePrincipaleQualification($data['employePrincipaleQualification'] ?? $employe->getEmployePrincipaleQualification());
+        $employe->setEmployeFormation($data['employeFormation'] ?? $employe->getEmployeFormation());
+        $employe->setEmployeAffiliationDesAssociationsGroupPro($data['employeAffiliationDesAssociationsGroupPro'] ?? $employe->getEmployeAffiliationDesAssociationsGroupPro());
+
+        // Set the related entities
+        $nationaliteId = $data['nationalite_id'] ?? null;
+        if ($nationaliteId) {
+            $nationalite = $entityManager->getRepository(Nationalite::class)->find($nationaliteId);
+            if (!$nationalite) {
+                return new JsonResponse(['message' => 'Nationalité introuvable'], Response::HTTP_NOT_FOUND);
+            }
+            $employe->setNationalite($nationalite);
+        }
+
+        $situationFamilialeId = $data['situationFamiliale_id'] ?? null;
+        if ($situationFamilialeId) {
+            $situationFamiliale = $entityManager->getRepository(SituationFamiliale::class)->find($situationFamilialeId);
+            if (!$situationFamiliale) {
+                return new JsonResponse(['message' => 'Situation familiale introuvable'], Response::HTTP_NOT_FOUND);
+            }
+            $employe->setSituationFamiliale($situationFamiliale);
+        }
+
+        $posteId = $data['poste_id'] ?? null;
+        if ($posteId) {
+            $poste = $entityManager->getRepository(Poste::class)->find($posteId);
+            if (!$poste) {
+                return new JsonResponse(['message' => 'Poste introuvable'], Response::HTTP_NOT_FOUND);
+            }
+            $employe->setPoste($poste);
+        }
+
+        // Update languages associated with the employee
+        if (isset($data['langue_ids'])) {
+            $employe->getLangues()->clear(); // Clear existing languages
+            $langueIds = $data['langue_ids'];
+            foreach ($langueIds as $langueId) {
+                $langue = $entityManager->getRepository(Langue::class)->find($langueId);
+                if (!$langue) {
+                    return new JsonResponse(['message' => 'Langue introuvable'], Response::HTTP_NOT_FOUND);
+                }
+                $employe->addLangue($langue);
+            }
+        }
+
+        $entityManager->flush();
+
+        return new JsonResponse('Employé mis à jour avec succès', Response::HTTP_OK);
+    }
+    #[Route('/api/delete/employe/{id}', name: 'api_employe_delete', methods: ['DELETE'])]
+    public function delete($id, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $employe = $entityManager->getRepository(Employe::class)->find($id);
+        if (!$employe) {
+            return new JsonResponse(['message' => 'Employé non trouvé'], Response::HTTP_NOT_FOUND);
+        }
+
+        $entityManager->remove($employe);
+        $entityManager->flush();
+
+        return new JsonResponse(['message' => 'Employé supprimé avec succès'], Response::HTTP_OK);
+    }
+    #[Route('/api/get/employe/{id}', name: 'api_employe_get_one', methods: ['GET'])]
+    public function getOne($id, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $employe = $entityManager->getRepository(Employe::class)->find($id);
+        if (!$employe) {
+            return new JsonResponse(['message' => 'Employé non trouvé'], Response::HTTP_NOT_FOUND);
+        }
+        $serializedEmploye = $this->serializeEmploye($employe);
+        return new JsonResponse($serializedEmploye, Response::HTTP_OK);
+    }
+    private function serializeLangues($langues): array
+    {
+        $serializedLangues = [];
+        foreach ($langues as $langue) {
+            $serializedLangues[] = [
+                'id' => $langue->getId(),
+                'langue' => $langue->getLangue(),
+                // Ajoutez d'autres propriétés de langue si nécessaire
+            ];
+        }
+        return $serializedLangues;
+    }
 }

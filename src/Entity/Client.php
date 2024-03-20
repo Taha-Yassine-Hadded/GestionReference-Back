@@ -6,6 +6,7 @@ use App\Repository\ClientRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Symfony\Component\Validator\Constraints as Assert;
 use Doctrine\DBAL\Types\Types;
 
 #[ORM\Entity(repositoryClass: ClientRepository::class)]
@@ -17,21 +18,26 @@ class Client
     private ?int $clientId ;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
     private ?string $personneContact = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
     private ?string $clientRaisonSociale = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
     private ?string $clientAdresse = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
     private ?string $clientTelephone = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
     private ?string $clientEmail = null;
 
-    #[ORM\OneToMany(targetEntity: Projet::class, mappedBy: "projet")]
+    #[ORM\OneToMany(targetEntity: Projet::class, mappedBy: "projet",cascade: ["persist","remove"])]
     private $projets;
 
     #[ORM\ManyToOne(targetEntity: NatureClient::class)]

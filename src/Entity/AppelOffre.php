@@ -8,7 +8,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: AppelOffreRepository::class)]
 class AppelOffre
@@ -19,32 +19,38 @@ class AppelOffre
     private ?int $appelOffreId ;
 
     #[ORM\Column]
+    #[Assert\NotBlank]
     private ?int $appelOffreDevis ;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Assert\NotBlank]
     private ?string $appelOffreObjet ;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[Assert\NotBlank]
     private ?\DateTimeInterface $appelOffreDateRemise ;
 
     #[ORM\Column()]
+    #[Assert\NotBlank]
     private ?int $appelOffreRetire ;
 
     #[ORM\Column()]
+    #[Assert\NotBlank]
     private ?int $appelOffreParticipation ;
 
     #[ORM\Column()]
+    #[Assert\NotBlank]
     private ?int $appelOffreEtat;
 
-    #[ORM\ManyToOne(targetEntity: AppelOffreType::class, inversedBy: 'appelOffres')]
+    #[ORM\ManyToOne(targetEntity: AppelOffreType::class, inversedBy: 'appelOffres',cascade: ["persist","remove"])]
     #[ORM\JoinColumn(name: "appel_offre_type_id", referencedColumnName: "appel_offre_type_id")]
     private ?AppelOffreType $appelOffreType;
     
-    #[ORM\ManyToOne(targetEntity: MoyenLivraison::class, inversedBy: 'appelOffres')]
+    #[ORM\ManyToOne(targetEntity: MoyenLivraison::class, inversedBy: 'appelOffres',cascade: ["persist","remove"])]
     #[ORM\JoinColumn(name:"moyen_livraison_id", referencedColumnName:"moyen_livraison_id")]
     private ?MoyenLivraison $moyenLivraison= null;
     
-    #[ORM\ManyToOne(targetEntity: OrganismeDemandeur::class, inversedBy: 'appelOffres')]
+    #[ORM\ManyToOne(targetEntity: OrganismeDemandeur::class, inversedBy: 'appelOffres',cascade: ["persist","remove"])]
     #[ORM\JoinColumn(name:"organisme_demandeur_id", referencedColumnName:"organisme_demandeur_id")]
     private OrganismeDemandeur $organismeDemandeur;
 

@@ -7,7 +7,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection; // Add this line
-
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: EmployeRepository::class)]
 class Employe
@@ -17,44 +17,51 @@ class Employe
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255, )]
-    private ?string $employeNom = null;
-
     #[ORM\Column(length: 255)]
-    private ?string $employePrenom = null;
+    #[Assert\NotBlank]
+    private ?string $personneContact = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[Assert\NotBlank]
     private ?\DateTimeInterface $employeDateNaissance = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
     private ?string $employeAdresse = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Assert\NotBlank]
     private ?string $employePrincipaleQualification = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
     private ?string $employeFormation = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
     private ?string $employeAffiliationDesAssociationsGroupPro = null;
 
     #[ORM\ManyToOne(targetEntity: Nationalite::class)]
+    #[Assert\NotBlank]
     private ?Nationalite $nationalite;
 
     #[ORM\ManyToOne(targetEntity: SituationFamiliale::class)]
+    #[Assert\NotBlank]
     private ?SituationFamiliale $situationFamiliale;
 
     #[ORM\ManyToOne(targetEntity: Poste::class)]
+    #[Assert\NotBlank]
     private ?Poste $poste;
 
-    #[ORM\OneToMany(targetEntity: EmployeExperience::class, mappedBy: 'employe')]
+    #[ORM\OneToMany(targetEntity: EmployeExperience::class, mappedBy: 'employe',cascade: ["persist","remove"])]
     private Collection $experiences;
 
-    #[ORM\OneToMany(targetEntity: EmployeEducation::class, mappedBy: 'employe')]
+    #[ORM\OneToMany(targetEntity: EmployeEducation::class, mappedBy: 'employe',cascade: ["persist","remove"])]
     private Collection $educations;
 
  
-    #[ORM\ManyToMany(targetEntity: Langue::class, inversedBy: 'employes')]
+    #[ORM\ManyToMany(targetEntity: Langue::class, inversedBy: 'employes',cascade: ["persist","remove"])]
+    #[Assert\NotBlank]
     private Collection $langues;
    
 
@@ -76,30 +83,17 @@ class Employe
         return $this->id;
     }
 
-    public function getEmployeNom(): ?string
+    public function getPersonneContact(): ?string
     {
-        return $this->employeNom;
+        return $this->personneContact;
     }
 
-    public function setEmployeNom(?string $employeNom): static
+    public function setPersonneContact(string $personneContact): static
     {
-        $this->employeNom = $employeNom;
+        $this->personneContact = $personneContact;
 
         return $this;
     }
-
-    public function getEmployePrenom(): ?string
-    {
-        return $this->employePrenom;
-    }
-
-    public function setEmployePrenom(?string $employePrenom): static
-    {
-        $this->employePrenom = $employePrenom;
-
-        return $this;
-    }
-
     public function getEmployeDateNaissance(): ?\DateTimeInterface
     {
         return $this->employeDateNaissance;
@@ -241,34 +235,31 @@ class Employe
         return $this;
     }
       /**
-     * @return Collection|EmployeLangue[]
-     */
-    public function getLangues(): Collection
-    {
-        return $this->langues;
+ * @return Collection|Langue[]
+ */
+public function getLangues(): Collection
+{
+    return $this->langues;
+}
+
+public function addLangue(Langue $langue): self
+{
+    if (!$this->langues->contains($langue)) {
+        $this->langues[] = $langue;
+        // Vous n'avez pas besoin de setter l'employé sur la langue car il n'y a pas d'entité intermédiaire
     }
 
-    public function addLangue(EmployeLangue $langue): self
-    {
-        if (!$this->langues->contains($langue)) {
-            $this->langues[] = $langue;
-            $langue->setEmploye($this);
-        }
+    return $this;
+}
 
-        return $this;
-    }
+public function removeLangue(Langue $langue): self
+{
+    $this->langues->removeElement($langue);
+    // Vous n'avez pas besoin de setter l'employé sur la langue car il n'y a pas d'entité intermédiaire
 
-    public function removeLangue(EmployeLangue $langue): self
-    {
-        if ($this->langues->removeElement($langue)) {
-            // set the owning side to null (unless already changed)
-            if ($langue->getEmploye() === $this) {
-                $langue->setEmploye(null);
-            }
-        }
+    return $this;
+}
 
-        return $this;
-    }
     public function getPoste(): ?Poste
 {
     return $this->poste;
@@ -280,7 +271,7 @@ public function setPoste(?Poste $poste): self
 
     return $this;
 }
- /**
+  /**
      * @return Collection|Projet[]
      */
     public function getProjets(): Collection
@@ -292,7 +283,6 @@ public function setPoste(?Poste $poste): self
     {
         if (!$this->projets->contains($projet)) {
             $this->projets[] = $projet;
-            $projet->setLieu($this);
         }
 
         return $this;
@@ -300,12 +290,7 @@ public function setPoste(?Poste $poste): self
 
     public function removeProjet(Projet $projet): self
     {
-        if ($this->projets->removeElement($projet)) {
-            // set the owning side to null (unless already changed)
-            if ($projet->getLieu() === $this) {
-                $projet->setLieu(null);
-            }
-        }
+        $this->projets->removeElement($projet);
 
         return $this;
     }

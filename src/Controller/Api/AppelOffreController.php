@@ -16,7 +16,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class AppelOffreController extends AbstractController
 {
-    #[Route('/api/create/appel-offres', name: 'api_appel_offres_create', methods: ['POST'])]
+    #[Route('/api/create/create/appel-offres', name: 'api_appel_offres_create', methods: ['POST'])]
     public function create(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         // Récupérer les données JSON de la requête
@@ -56,7 +56,7 @@ class AppelOffreController extends AbstractController
         return new JsonResponse(['message' => 'Appel d\'offre créé avec succès'], Response::HTTP_CREATED);
     }
 
-    #[Route('/api/appel-offres/{id}', name: 'api_appel_offres_get', methods: ['GET'])]
+    #[Route('/api/get/appel-offres/{id}', name: 'api_appel_offres_get', methods: ['GET'])]
     public function getOne(int $id, AppelOffreRepository $appelOffreRepository): JsonResponse
     {
         $appelOffre = $appelOffreRepository->find($id);
@@ -71,7 +71,7 @@ class AppelOffreController extends AbstractController
         return new JsonResponse($appelOffreArray);
     }
 
-    #[Route('/api/appel-offres/{id}', name: 'api_appel_offres_update', methods: ['PUT'])]
+    #[Route('/api/put/appel-offres/{id}', name: 'api_appel_offres_update', methods: ['PUT'])]
     public function update(int $id, Request $request, EntityManagerInterface $entityManager, AppelOffreRepository $appelOffreRepository): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
@@ -109,7 +109,7 @@ class AppelOffreController extends AbstractController
     }
     
 
-    #[Route('/api/appel-offres/{id}', name: 'api_appel_offres_delete', methods: ['DELETE'])]
+    #[Route('/api/delete/appel-offres/{id}', name: 'api_appel_offres_delete', methods: ['DELETE'])]
     public function delete(int $id, EntityManagerInterface $entityManager, AppelOffreRepository $appelOffreRepository): JsonResponse
     {
         $appelOffre = $appelOffreRepository->find($id);

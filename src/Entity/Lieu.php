@@ -6,6 +6,7 @@ use App\Repository\LieuRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Symfony\Component\Validator\Constraints as Assert;
 use Doctrine\DBAL\Types\Types;
 
 #[ORM\Entity(repositoryClass: LieuRepository::class)]
@@ -17,15 +18,17 @@ class Lieu
     private ?int $lieuId = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
     private ?string $lieuNom = null;
 
     
     #[ORM\ManyToOne(targetEntity: Pays::class)]
     #[ORM\JoinColumn(name: "pays_id", referencedColumnName: "pays_id", nullable: false)]
+    #[Assert\NotBlank]
     private ?Pays $pays = null;
 
     // Ajout de la relation OneToMany avec Projet
-    #[ORM\OneToMany(targetEntity: Projet::class, mappedBy: "lieu")]
+    #[ORM\OneToMany(targetEntity: Projet::class, mappedBy: "lieu",cascade: ["persist","remove"])]
     private $projets;
 
     public function __construct()

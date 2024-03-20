@@ -6,6 +6,7 @@ use App\Repository\PosteRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Symfony\Component\Validator\Constraints as Assert;
 use Doctrine\DBAL\Types\Types;
 
 
@@ -18,9 +19,10 @@ class Poste
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
     private ?string $posteNom = null;
 
-    #[ORM\OneToMany(targetEntity: Employe::class, mappedBy: 'nationalite')]
+    #[ORM\OneToMany(targetEntity: Employe::class, mappedBy: 'poste',cascade: ["persist","remove"])]
     private Collection $employes;
 
    

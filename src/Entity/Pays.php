@@ -6,6 +6,7 @@ use App\Repository\PaysRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Symfony\Component\Validator\Constraints as Assert;
 use Doctrine\DBAL\Types\Types;
 
 #[ORM\Entity(repositoryClass: PaysRepository::class)]
@@ -17,9 +18,10 @@ class Pays
     private ?int $paysId = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
     private ?string $paysNom = null;
 
-    #[ORM\OneToMany(targetEntity: Lieu::class, mappedBy: "pays")]
+    #[ORM\OneToMany(targetEntity: Lieu::class, mappedBy: "pays",cascade: ["persist","remove"])]
     private $lieux;
 
     public function __construct()

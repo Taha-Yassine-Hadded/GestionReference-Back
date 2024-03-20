@@ -6,6 +6,7 @@ use App\Repository\EmployeEducationRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Symfony\Component\Validator\Constraints as Assert;
 use Doctrine\DBAL\Types\Types;
 
 #[ORM\Entity(repositoryClass: EmployeEducationRepository::class)]
@@ -17,18 +18,23 @@ class EmployeEducation
     private ?int $id;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
     private ?string $employeEducationNatureEtudes = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
     private ?string $employeEducationEtablissement = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
     private ?string $employeEducationDiplomes = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
     private ?string $employeEducationAnneeObtention = null;
 
     #[ORM\ManyToOne(targetEntity: Employe::class)]
+    #[Assert\NotBlank]
     private ?Employe $employe;
 
     public function __toString()

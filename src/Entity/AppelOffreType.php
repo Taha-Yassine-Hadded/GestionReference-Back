@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\AppelOffreTypeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Symfony\Component\Validator\Constraints as Assert;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: AppelOffreTypeRepository::class)]
@@ -16,9 +17,10 @@ class AppelOffreType
     private ?int $appelOffreTypeId;
 
     #[ORM\Column(name: 'appel_offre_type', type: 'string', length: 255)]
+    #[Assert\NotBlank]
     private ?string $appelOffreType;
 
-    #[ORM\OneToMany(mappedBy: 'appelOffreType', targetEntity: AppelOffre::class)]
+    #[ORM\OneToMany(mappedBy: 'appelOffreType', targetEntity: AppelOffre::class,cascade: ["persist","remove"])]
     private Collection $appelOffres;
 
     public function __construct()

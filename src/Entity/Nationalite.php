@@ -6,6 +6,7 @@ use App\Repository\NationaliteRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Symfony\Component\Validator\Constraints as Assert;
 use Doctrine\DBAL\Types\Types;
 
 #[ORM\Entity(repositoryClass: NationaliteRepository::class)]
@@ -17,9 +18,10 @@ class Nationalite
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
     private ?string $nationaliteLibelle = null;
 
-    #[ORM\OneToMany(targetEntity: Employe::class, mappedBy: 'nationalite')]
+    #[ORM\OneToMany(targetEntity: Employe::class, mappedBy: 'nationalite',cascade: ["persist","remove"])]
     private Collection $employes;
 
 

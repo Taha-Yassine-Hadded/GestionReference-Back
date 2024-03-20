@@ -6,6 +6,7 @@ use App\Repository\ProjetRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Validator\Constraints as Assert;
 use Doctrine\Common\Collections\Collection;
 
 
@@ -18,44 +19,54 @@ class Projet
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
     private ?string $projetLibelle = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Assert\NotBlank]
     private ?string $projetDescirption = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
     private ?string $projetReference = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[Assert\NotBlank]
     private ?\DateTimeInterface $projetDateDemarrage = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[Assert\NotBlank]
     private ?\DateTimeInterface $projetDateAchevement = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
     private ?string $projetUrlFonctionnel = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Assert\NotBlank]
     private ?string $ProjetDescriptionServiceEffectivementRendus = null;
 
     #[ORM\ManyToOne(targetEntity: Lieu::class)]
     #[ORM\JoinColumn(name: 'lieu_id', referencedColumnName: 'lieu_id', nullable: false)]
+    #[Assert\NotBlank]
     private ?Lieu $lieu;
 
     #[ORM\ManyToOne(targetEntity: Client::class)]
     #[ORM\JoinColumn(name: 'client_id', referencedColumnName: 'client_id', nullable: false)]
+    #[Assert\NotBlank]
     private ?Client $client; 
 
     
 
-    #[ORM\OneToMany(targetEntity: ProjetPreuve::class, mappedBy: "projet")]
+    #[ORM\OneToMany(targetEntity: ProjetPreuve::class, mappedBy: "projet",cascade: ["persist","remove"])]
     private Collection $projetPreuves;
   
 
-    #[ORM\ManyToMany(targetEntity: Categorie::class, inversedBy: 'projets')]
+    #[ORM\ManyToMany(targetEntity: Categorie::class, inversedBy: 'projets',cascade: ["persist","remove"])]
+    #[Assert\NotBlank]
     private $categories;
 
-    #[ORM\ManyToMany(targetEntity: Employe::class, inversedBy: "projets")]
+    #[ORM\ManyToMany(targetEntity: Employe::class, inversedBy: "projets",cascade: ["persist","remove"])]
     #[ORM\JoinTable(name: "projet_employe_poste")]
     private $employes;
  
@@ -65,6 +76,11 @@ class Projet
        $this->categories = new ArrayCollection();
        $this->employes = new ArrayCollection();
     
+    }
+
+    public function clearCategories(): void
+    {
+        $this->categories->clear();
     }
     public function __toString()
     {
@@ -237,7 +253,6 @@ class Projet
     {
         if (!$this->employes->contains($employe)) {
             $this->employes[] = $employe;
-            $employe->setNationalite($this);
         }
 
         return $this;
@@ -245,12 +260,8 @@ class Projet
 
     public function removeEmploye(Employe $employe): self
     {
-        if ($this->employes->removeElement($employe)) {
-            // set the owning side to null (unless already changed)
-            if ($employe->getNationalite() === $this) {
-                $employe->setNationalite(null);
-            }
-        }
+        $this->employes->removeElement($employe);
+
 
         return $this;
     }

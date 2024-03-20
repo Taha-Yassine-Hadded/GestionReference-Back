@@ -6,6 +6,7 @@ use App\Repository\SituationFamilialeRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Symfony\Component\Validator\Constraints as Assert;
 use Doctrine\DBAL\Types\Types;
 
 #[ORM\Entity(repositoryClass: SituationFamilialeRepository::class)]
@@ -18,9 +19,10 @@ class SituationFamiliale
 
     
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
     private ?string $situationFamiliale = null;
 
-    #[ORM\OneToMany(targetEntity: Employe::class, mappedBy: 'situationFamiliale')]
+    #[ORM\OneToMany(targetEntity: Employe::class, mappedBy: 'situationFamiliale',cascade: ["persist","remove"])]
     private Collection $employes;
 
     public function __construct()

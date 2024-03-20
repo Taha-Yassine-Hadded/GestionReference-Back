@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\MoyenLivraisonRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Symfony\Component\Validator\Constraints as Assert;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: MoyenLivraisonRepository::class)]
@@ -16,9 +17,10 @@ class MoyenLivraison
     private ?int $moyenLivraisonId = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
     private ?string $moyenLivraison = null;
 
-    #[ORM\OneToMany(mappedBy: 'moyenLivraison', targetEntity: AppelOffre::class)]
+    #[ORM\OneToMany(mappedBy: 'moyenLivraison', targetEntity: AppelOffre::class,cascade: ["persist","remove"])]
     private Collection $appelOffres;
 
     public function __construct()

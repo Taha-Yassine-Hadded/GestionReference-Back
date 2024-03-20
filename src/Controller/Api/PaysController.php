@@ -13,7 +13,6 @@ use Doctrine\ORM\EntityManagerInterface;
 class PaysController extends AbstractController
 {
     #[Route('/api/create/pays', name: 'api_pays_create', methods: ['POST'])]
-    #[Security('is_granted("ROLE_USER")')] 
     public function create(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         $requestData = json_decode($request->getContent(), true);
@@ -63,7 +62,7 @@ class PaysController extends AbstractController
         // Retourner les données des pays sous forme de réponse JSON
         return new JsonResponse($paysData, Response::HTTP_OK);
     }
-
+ 
     #[Route('/api/put/pays/{id}', name: 'api_pays_update', methods: ['PUT'])]
     public function update(Request $request, Pays $pays, EntityManagerInterface $entityManager): JsonResponse
     {

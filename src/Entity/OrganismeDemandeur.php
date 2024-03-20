@@ -6,6 +6,7 @@ use App\Repository\OrganismeDemandeurRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Symfony\Component\Validator\Constraints as Assert;
 use Doctrine\DBAL\Types\Types;
 
 #[ORM\Entity(repositoryClass: OrganismeDemandeurRepository::class)]
@@ -17,6 +18,7 @@ class OrganismeDemandeur
     private ?int $organismeDemandeurId = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
     private ?string $organismeDemandeurLibelle = null;
 
     #[ORM\OneToMany(targetEntity: AppelOffre::class, mappedBy: 'organismeDemandeur')]
