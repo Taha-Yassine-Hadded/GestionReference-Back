@@ -64,4 +64,58 @@ class UploadFileController extends AbstractController
         // Renvoyer une réponse indiquant que l'entité a été créée avec succès
         return new JsonResponse(['message' => 'UploadFile créé avec succès'], Response::HTTP_CREATED);
     }
+
+    #[Route('/api/uploadfiles/{id}', name: 'api_uploadfile_show', methods: ['GET'])]
+    public function show(int $id, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $uploadFile = $entityManager->getRepository(UploadFile::class)->find($id);
+
+        if (!$uploadFile) {
+            return new JsonResponse(['message' => 'UploadFile non trouvé'], Response::HTTP_NOT_FOUND);
+        }
+
+        // Vous pouvez retourner les données de l'entité UploadFile sous forme de tableau JSON
+        return new JsonResponse($uploadFile->toArray());
+    }
+
+    #[Route('/api/uploadfiles/{id}', name: 'api_uploadfile_update', methods: ['PUT'])]
+    public function update(int $id, Request $request, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $uploadFile = $entityManager->getRepository(UploadFile::class)->find($id);
+
+        if (!$uploadFile) {
+            return new JsonResponse(['message' => 'UploadFile non trouvé'], Response::HTTP_NOT_FOUND);
+        }
+
+        // Votre logique de mise à jour de l'entité UploadFile ici
+
+        // Par exemple, si vous voulez mettre à jour le fichier lui-même,
+        // vous pouvez utiliser le même code que celui utilisé pour la création
+        // du fichier, en veillant à supprimer l'ancien fichier le cas échéant.
+
+        // Ensuite, persistez l'entité mise à jour dans la base de données
+        $entityManager->persist($uploadFile);
+        $entityManager->flush();
+
+        return new JsonResponse(['message' => 'UploadFile mis à jour avec succès'], Response::HTTP_OK);
+    }
+
+    #[Route('/api/uploadfiles/{id}', name: 'api_uploadfile_delete', methods: ['DELETE'])]
+    public function delete(int $id, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $uploadFile = $entityManager->getRepository(UploadFile::class)->find($id);
+
+        if (!$uploadFile) {
+            return new JsonResponse(['message' => 'UploadFile non trouvé'], Response::HTTP_NOT_FOUND);
+        }
+
+        // Supprimer le fichier physique du serveur si nécessaire
+        // Assurez-vous de gérer correctement la suppression du fichier du serveur.
+
+        // Supprimer l'entité de la base de données
+        $entityManager->remove($uploadFile);
+        $entityManager->flush();
+
+        return new JsonResponse(['message' => 'UploadFile supprimé avec succès'], Response::HTTP_OK);
+    }
 }

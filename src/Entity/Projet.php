@@ -56,7 +56,8 @@ class Projet
     #[Assert\NotBlank]
     private ?Client $client; 
 
-    
+    #[ORM\OneToMany(targetEntity: ProjetEmployePoste::class, mappedBy: 'employe',cascade: ["persist","remove"])]
+    private Collection $projetsEmployePostes ;
 
     #[ORM\OneToMany(targetEntity: ProjetPreuve::class, mappedBy: "projet",cascade: ["persist","remove"])]
     private Collection $projetPreuves;
@@ -66,15 +67,12 @@ class Projet
     #[Assert\NotBlank]
     private $categories;
 
-    #[ORM\ManyToMany(targetEntity: Employe::class, inversedBy: "projets",cascade: ["persist","remove"])]
-    #[ORM\JoinTable(name: "projet_employe_poste")]
-    private $employes;
- 
     public function __construct()
     {
         $this->projetPreuves = new ArrayCollection();
        $this->categories = new ArrayCollection();
-       $this->employes = new ArrayCollection();
+       $this->projetsEmployePostes = new ArrayCollection();
+    
     
     }
 
@@ -241,27 +239,34 @@ class Projet
 
         return $this;
     }
-       /**
-     * @return Collection|Employe[]
-     */
-    public function getEmployes(): Collection
+
+
+        public function getProjetsEmployePostes(): Collection
     {
-        return $this->employes;
+        return $this->projetsEmployePostes;
     }
 
-    public function addEmploye(Employe $employe): self
+    // Méthode pour ajouter un ProjetEmployePoste à la collection
+    public function addProjetEmployePoste(ProjetEmployePoste $projetEmployePoste): self
     {
-        if (!$this->employes->contains($employe)) {
-            $this->employes[] = $employe;
+        if (!$this->projetsEmployePostes->contains($projetEmployePoste)) {
+            $this->projetsEmployePostes[] = $projetEmployePoste;
+            $projetEmployePoste->setProjet($this); // Assurez-vous que le projet est défini pour le projetEmployePoste ajouté
         }
 
         return $this;
     }
 
-    public function removeEmploye(Employe $employe): self
+    // Méthode pour retirer un ProjetEmployePoste de la collection
+    public function removeProjetEmployePoste(ProjetEmployePoste $projetEmployePoste): self
     {
-        $this->employes->removeElement($employe);
-
+        if ($this->projetsEmployePostes->contains($projetEmployePoste)) {
+            $this->projetsEmployePostes->removeElement($projetEmployePoste);
+            // Mise à jour de la relation de ProjetEmployePoste avec le projet à NULL lorsqu'il est retiré
+            if ($projetEmployePoste->getProjet() === $this) {
+                $projetEmployePoste->setProjet(null);
+            }
+        }
 
         return $this;
     }

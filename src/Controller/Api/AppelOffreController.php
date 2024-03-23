@@ -16,7 +16,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class AppelOffreController extends AbstractController
 {
-    #[Route('/api/create/create/appel-offres', name: 'api_appel_offres_create', methods: ['POST'])]
+    #[Route('/api/create/appel-offres', name: 'api_appel_offres_create', methods: ['POST'])]
     public function create(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         // Récupérer les données JSON de la requête

@@ -35,7 +35,7 @@ class Langue
         return $this->id;
     }
     
-    public function getLangue(): ?string
+    public function getLangueNom(): ?string
     {
         return $this->langueNom;
     }

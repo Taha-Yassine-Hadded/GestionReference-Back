@@ -70,7 +70,7 @@ foreach ($data['employes'] as $employeData) {
         return new JsonResponse('Projet créé avec succès', Response::HTTP_CREATED);
     }
 
-    #[Route('/api/projets', name: 'api_projet_get_all', methods: ['GET'])]
+    #[Route('/api/getAll/projets', name: 'api_projet_get_all', methods: ['GET'])]
     public function getAll(EntityManagerInterface $entityManager): JsonResponse
     {
         $projets = $entityManager->getRepository(Projet::class)->findAll();
@@ -81,7 +81,7 @@ foreach ($data['employes'] as $employeData) {
         return new JsonResponse($serializedProjets, Response::HTTP_OK);
     }
 
-    #[Route('/api/projets/{id}', name: 'api_projet_get_one', methods: ['GET'])]
+    #[Route('/api/get/projet/{id}', name: 'api_projet_get_one', methods: ['GET'])]
     public function getOne($id, EntityManagerInterface $entityManager): JsonResponse
     {
         $projet = $entityManager->getRepository(Projet::class)->find($id);
@@ -92,7 +92,7 @@ foreach ($data['employes'] as $employeData) {
         return new JsonResponse($serializedProjet, Response::HTTP_OK);
     }
 
-    #[Route('/api/projets/{id}', name: 'api_projet_delete', methods: ['DELETE'])]
+    #[Route('/api/delete/projet/{id}', name: 'api_projet_delete', methods: ['DELETE'])]
     public function delete($id, EntityManagerInterface $entityManager): JsonResponse
     {
         $projet = $entityManager->getRepository(Projet::class)->find($id);

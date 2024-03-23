@@ -64,13 +64,15 @@ class Employe
     #[Assert\NotBlank]
     private Collection $langues;
    
+    #[ORM\OneToMany(targetEntity: ProjetEmployePoste::class, mappedBy: 'employes',cascade: ["persist","remove"])]
+    private Collection $projetsEmployePostes ;
 
     public function __construct()
     {
         $this->experiences = new ArrayCollection();
         $this->educations = new ArrayCollection();
         $this->langues = new ArrayCollection();
-        $this->projets = new ArrayCollection();
+        $this->projetsEmployePostes = new ArrayCollection();
       
     }
     public function __toString()
@@ -271,26 +273,33 @@ public function setPoste(?Poste $poste): self
 
     return $this;
 }
-  /**
-     * @return Collection|Projet[]
-     */
-    public function getProjets(): Collection
+
+    public function getProjetsEmployePostes(): Collection
     {
-        return $this->projets;
+        return $this->projetsEmployePostes;
     }
 
-    public function addProjet(Projet $projet): self
+    // Méthode pour ajouter un ProjetEmployePoste à la collection
+    public function addProjetEmployePoste(ProjetEmployePoste $projetEmployePoste): self
     {
-        if (!$this->projets->contains($projet)) {
-            $this->projets[] = $projet;
+        if (!$this->projetsEmployePostes->contains($projetEmployePoste)) {
+            $this->projetsEmployePostes[] = $projetEmployePoste;
+            $projetEmployePoste->setProjet($this); // Assurez-vous que le projet est défini pour le projetEmployePoste ajouté
         }
 
         return $this;
     }
 
-    public function removeProjet(Projet $projet): self
+    // Méthode pour retirer un ProjetEmployePoste de la collection
+    public function removeProjetEmployePoste(ProjetEmployePoste $projetEmployePoste): self
     {
-        $this->projets->removeElement($projet);
+        if ($this->projetsEmployePostes->contains($projetEmployePoste)) {
+            $this->projetsEmployePostes->removeElement($projetEmployePoste);
+            // Mise à jour de la relation de ProjetEmployePoste avec le projet à NULL lorsqu'il est retiré
+            if ($projetEmployePoste->getProjet() === $this) {
+                $projetEmployePoste->setProjet(null);
+            }
+        }
 
         return $this;
     }

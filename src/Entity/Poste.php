@@ -25,12 +25,13 @@ class Poste
     #[ORM\OneToMany(targetEntity: Employe::class, mappedBy: 'poste',cascade: ["persist","remove"])]
     private Collection $employes;
 
-   
+    #[ORM\OneToMany(targetEntity: ProjetEmployePoste::class, mappedBy: 'poste',cascade: ["persist","remove"])]
+    private Collection $projetsEmployePostes ;
 
     public function __construct()
     {
         $this->employes = new ArrayCollection();
-        $this->projetEmployePostes = new ArrayCollection();
+        $this->projetsEmployePostes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -49,9 +50,9 @@ class Poste
 
         return $this;
     }
-      /**
+    /**
      * @return Collection|Employe[]
-     */
+    */
     public function getEmployes(): Collection
     {
         return $this->employes;
@@ -61,18 +62,19 @@ class Poste
     {
         if (!$this->employes->contains($employe)) {
             $this->employes[] = $employe;
-            $employe->setNationalite($this);
+            $employe->setPoste($this); // Assurez-vous de définir le poste sur l'employé
         }
-
+    
         return $this;
     }
+    
 
     public function removeEmploye(Employe $employe): self
     {
         if ($this->employes->removeElement($employe)) {
             // set the owning side to null (unless already changed)
-            if ($employe->getNationalite() === $this) {
-                $employe->setNationalite(null);
+            if ($employe->getPoste() === $this) {
+                $employe->setPoste(null);
             }
         }
 
