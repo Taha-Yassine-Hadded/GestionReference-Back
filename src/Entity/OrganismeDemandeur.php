@@ -21,7 +21,7 @@ class OrganismeDemandeur
     #[Assert\NotBlank]
     private ?string $organismeDemandeurLibelle = null;
 
-    #[ORM\OneToMany(targetEntity: AppelOffre::class, mappedBy: 'organismeDemandeur')]
+    #[ORM\OneToMany(targetEntity: AppelOffre::class, mappedBy: 'organismeDemandeur',cascade: ["persist","remove"])]
     private Collection $appelOffres;
 
     public function __construct()

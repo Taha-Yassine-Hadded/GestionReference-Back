@@ -109,12 +109,13 @@ class EmployeExperienceController extends AbstractController
     private function serializeEmployeExperience(EmployeExperience $employeExperience): array
     {
         return [
-            'employeEducationId' => $employeExperience->getId(),
+            'employeExperienceId' => $employeExperience->getId(),
             'employeExperiencePoste' => $employeExperience->getEmployeExperiencePoste(),
             'employeExperienceSociete' => $employeExperience->getEmployeExperienceSociete(),
             'employeExperienceOragnismeEmployeur' => $employeExperience->getEmployeExperienceOragnismeEmployeur(),
             'employeExperiencePeriode' => $employeExperience->getEmployeExperiencePeriode(),
-            'employeExperienceeFonctionOccupe' => $employeExperience->getEmployeExperienceFonctionOccupe(),
+            'employeExperienceFonctionOccupe' => $employeExperience->getEmployeExperienceFonctionOccupe(),
+            'employeId' => $employeExperience->getEmploye()->getId(),
             // Ajoutez d'autres attributs de l'entité que vous souhaitez inclure dans la réponse JSON
         ];
     }

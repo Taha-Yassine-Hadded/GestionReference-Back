@@ -100,6 +100,7 @@ class EmployeEducationController extends AbstractController
             'employeEducationEtablissement' => $employeEducation->getEmployeEducationEtablissement(),
             'employeEducationDiplomes' => $employeEducation->getEmployeEducationDiplomes(),
             'employeEducationAnneeObtention' => $employeEducation->getEmployeEducationAnneeObtention(),
+            'employeId' => $employeEducation->getEmploye()->getId(),
             // Ajoutez d'autres attributs de l'entité que vous souhaitez inclure dans la réponse JSON
         ];
     }

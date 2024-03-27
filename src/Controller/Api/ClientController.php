@@ -31,7 +31,7 @@ class ClientController extends AbstractController
         return new JsonResponse($this->serializeClient($client), Response::HTTP_OK);
     }
 
-    #[Route('/api/create/client', name: 'api_client_create', methods: ['POST'])]
+    #[Route('/api/create/clients', name: 'api_client_create', methods: ['POST'])]
     public function create(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         $data = json_decode($request->getContent(), true);

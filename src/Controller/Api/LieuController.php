@@ -40,7 +40,27 @@ class LieuController extends AbstractController
         // Retourner une réponse JSON avec un message de succès
         return new JsonResponse(['message' => 'Lieu créé avec succès'], Response::HTTP_CREATED);
     }
-
+    #[Route('/api/getAll/lieux', name: 'api_lieux_get_all', methods: ['GET'])]
+    public function getAll(EntityManagerInterface $entityManager): JsonResponse
+    {
+        $lieuxRepository = $entityManager->getRepository(Lieu::class);
+        $lieux = $lieuxRepository->findAll();
+    
+        $lieuxData = [];
+        foreach ($lieux as $lieu) {
+            $lieuxData[] = [
+                'lieuId' => $lieu->getLieuId(),
+                'lieuNom' => $lieu->getLieuNom(),
+                'pays' => [
+                    'paysId' => $lieu->getPays()->getPaysId(),
+                    'paysNom' => $lieu->getPays()->getPaysNom(),
+                    // Ajoutez d'autres attributs du pays que vous souhaitez inclure
+                ],
+            ];
+        }
+    
+        return new JsonResponse($lieuxData, Response::HTTP_OK);
+    }
     #[Route('/api/get/lieux/{id}', name: 'api_lieu_show', methods: ['GET'])]
     public function show(Lieu $lieu): JsonResponse
     {
