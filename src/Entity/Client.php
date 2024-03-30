@@ -41,7 +41,8 @@ class Client
     private $projets;
 
     #[ORM\ManyToOne(targetEntity: NatureClient::class)]
-    #[ORM\JoinColumn(name: "nature_client_id", referencedColumnName: "nature_client_id")]
+    #[ORM\JoinColumn(name: "nature_client_id", referencedColumnName: "nature_client_id", nullable: false)]
+    #[Assert\NotBlank]
     private ?NatureClient $natureClient; 
 
   

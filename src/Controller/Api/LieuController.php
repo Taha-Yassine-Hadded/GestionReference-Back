@@ -51,11 +51,8 @@ class LieuController extends AbstractController
             $lieuxData[] = [
                 'lieuId' => $lieu->getLieuId(),
                 'lieuNom' => $lieu->getLieuNom(),
-                'pays' => [
-                    'paysId' => $lieu->getPays()->getPaysId(),
-                    'paysNom' => $lieu->getPays()->getPaysNom(),
-                    // Ajoutez d'autres attributs du pays que vous souhaitez inclure
-                ],
+                'paysId' => $lieu->getPays()->getPaysId(),
+                  
             ];
         }
     
@@ -67,11 +64,8 @@ class LieuController extends AbstractController
         $data = [
             'lieuId' => $lieu->getLieuId(),
             'lieuNom' => $lieu->getLieuNom(),
-            'pays' => [
-                'paysId' => $lieu->getPays()->getPaysId(),
-                'paysNom' => $lieu->getPays()->getPaysNom(),
-                // Ajoutez d'autres attributs du pays que vous souhaitez inclure
-            ],
+            'paysId' => $lieu->getPays()->getPaysId(),
+               
         ];
 
         return new JsonResponse($data, Response::HTTP_OK);

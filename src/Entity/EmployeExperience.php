@@ -22,9 +22,7 @@ class EmployeExperience
       #[Assert\NotBlank]
       private ?string $employeExperiencePoste = null;
   
-      #[ORM\Column(length: 255, nullable: true)]
-      #[Assert\NotBlank]
-      private ?string $employeExperienceSociete = null;
+    
   
       #[ORM\Column(length: 255, nullable: true)]
       #[Assert\NotBlank]
@@ -64,17 +62,7 @@ class EmployeExperience
         return $this;
     }
 
-    public function getEmployeExperienceSociete(): ?string
-    {
-        return $this->employeExperienceSociete;
-    }
-
-    public function setEmployeExperienceSociete(?string $employeExperienceSociete): static
-    {
-        $this->employeExperienceSociete = $employeExperienceSociete;
-
-        return $this;
-    }
+   
 
     public function getEmployeExperienceOragnismeEmployeur(): ?string
     {

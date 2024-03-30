@@ -16,7 +16,7 @@ class AppelOffre
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $appelOffreId ;
+    private ?int $id ;
 
     #[ORM\Column]
     #[Assert\NotBlank]
@@ -54,9 +54,14 @@ class AppelOffre
     #[ORM\JoinColumn(name:"organisme_demandeur_id", referencedColumnName:"organisme_demandeur_id")]
     private OrganismeDemandeur $organismeDemandeur;
 
-    public function getAppelOffreId(): ?int
+    public function __toString()
     {
-        return $this->appelOffreId;
+        return $this->id;
+    }
+
+    public function getId(): ?int
+    {
+        return $this->id;
     }
 
     public function getAppelOffreDevis(): ?int

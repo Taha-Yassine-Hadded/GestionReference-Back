@@ -91,10 +91,9 @@ class ProjetPreuveController extends AbstractController
         return [
             'projetPreuveId' => $projetPreuve->getId(),
             'projetPreuveLibelle' => $projetPreuve->getProjetPreuveLibelle(),
-            'projet' => [
-                'projetId' => $projetPreuve->getProjet()->getId(),
+            'projetId' => $projetPreuve->getProjet()->getId(),
                 // Ajoutez d'autres attributs du projet que vous souhaitez inclure
-            ],
+        
         ];
     }
 }
