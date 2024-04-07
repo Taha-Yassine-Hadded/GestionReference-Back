@@ -28,9 +28,9 @@ class EmployeExperience
       #[Assert\NotBlank]
       private ?string $employeExperienceOragnismeEmployeur = null;
   
-      #[ORM\Column(type: 'datetime', nullable: true)]
+      #[ORM\Column(length: 255, nullable: true)]
       #[Assert\NotBlank]
-      private ?\DateTimeInterface $employeExperiencePeriode = null;
+      private ?string $employeExperiencePeriode = null;
   
       #[ORM\Column(length: 255, nullable: true)]
       #[Assert\NotBlank]
@@ -76,17 +76,18 @@ class EmployeExperience
         return $this;
     }
 
-    public function getEmployeExperiencePeriode(): ?\DateTimeInterface
-    {
-        return $this->employeExperiencePeriode;
-    }
+    public function getEmployeExperiencePeriode(): ?string
+{
+    return $this->employeExperiencePeriode;
+}
 
-    public function setEmployeExperiencePeriode(?\DateTimeInterface $employeExperiencePeriode): static
-    {
-        $this->employeExperiencePeriode = $employeExperiencePeriode;
+public function setEmployeExperiencePeriode(?string $employeExperiencePeriode): static
+{
+    $this->employeExperiencePeriode = $employeExperiencePeriode;
 
-        return $this;
-    }
+    return $this;
+}
+
 
     public function getEmployeExperienceFonctionOccupe(): ?string
     {

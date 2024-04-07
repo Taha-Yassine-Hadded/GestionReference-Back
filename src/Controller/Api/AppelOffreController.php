@@ -149,16 +149,16 @@ class AppelOffreController extends AbstractController
     private function serializeAppelOffre(AppelOffre $appelOffre): array
     {
         return [
-            'appelOffreId' => $appelOffre->getAppelOffreId(),
+            'appelOffreId' => $appelOffre->getId(),
             'appelOffreDevis' => $appelOffre->getAppelOffreDevis(),
             'appelOffreObjet' => $appelOffre->getAppelOffreObjet(),
             'appelOffreDateRemise' => $appelOffre->getAppelOffreDateRemise() ? $appelOffre->getAppelOffreDateRemise()->format('Y-m-d') : null,
             'appelOffreRetire' => $appelOffre->getAppelOffreRetire(),
             'appelOffreParticipation' => $appelOffre->getAppelOffreParticipation(),
             'appelOffreEtat' => $appelOffre->getAppelOffreEtat(),
-            'appelOffreTypeId' => $appelOffre->getAppelOffreType() ? $appelOffre->getAppelOffreType()->getAppelOffreTypeId() : null,
-            'moyenLivraisonId' => $appelOffre->getMoyenLivraison() ? $appelOffre->getMoyenLivraison()->getMoyenLivraisonId() : null,
-            'organismeDemandeurId' => $appelOffre->getOrganismeDemandeur() ? $appelOffre->getOrganismeDemandeur()->getOrganismeDemandeurId() : null,
+            'appelOffreTypeId' => $appelOffre->getAppelOffreType() ? $appelOffre->getAppelOffreType()->getId() : null,
+            'moyenLivraisonId' => $appelOffre->getMoyenLivraison() ? $appelOffre->getMoyenLivraison()->getId() : null,
+            'organismeDemandeurId' => $appelOffre->getOrganismeDemandeur() ? $appelOffre->getOrganismeDemandeur()->getId() : null,
             // Ajoutez d'autres attributs de l'entité que vous souhaitez inclure dans la réponse JSON
         ];
     }

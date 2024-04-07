@@ -47,12 +47,10 @@ class Projet
     private ?string $ProjetDescriptionServiceEffectivementRendus = null;
 
     #[ORM\ManyToOne(targetEntity: Lieu::class)]
-    #[ORM\JoinColumn(name: 'lieu_id', referencedColumnName: 'lieu_id', nullable: false)]
     #[Assert\NotBlank]
     private ?Lieu $lieu;
 
     #[ORM\ManyToOne(targetEntity: Client::class)]
-    #[ORM\JoinColumn(name: 'client_id', referencedColumnName: 'client_id', nullable: false)]
     #[Assert\NotBlank]
     private ?Client $client; 
 
@@ -67,11 +65,13 @@ class Projet
     #[Assert\NotBlank]
     private $categories;
 
+
     public function __construct()
     {
         $this->projetPreuves = new ArrayCollection();
        $this->categories = new ArrayCollection();
        $this->projetsEmployePostes = new ArrayCollection();
+       $this->employes = new ArrayCollection();
     
     
     }
@@ -212,6 +212,33 @@ class Projet
             if ($projetPreuve->getProjet() === $this) {
                 $projetPreuve->setProjet(null);
             }
+        }
+
+        return $this;
+    }
+      /**
+     * @return Collection|Employe[]
+     */
+    public function getEmployes(): Collection
+    {
+        return $this->employes;
+    }
+
+    public function addEmploye(Employe $employe): self
+    {
+        if (!$this->employes->contains($employe)) {
+            $this->employes[] = $employe;
+            $employe->addProjet($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEmploye(Employe $employe): self
+    {
+        if ($this->employes->contains($employe)) {
+            $this->employes->removeElement($employe);
+            $employe->removeProjet($this);
         }
 
         return $this;

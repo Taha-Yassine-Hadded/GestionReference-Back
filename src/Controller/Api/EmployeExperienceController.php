@@ -41,68 +41,59 @@ class EmployeExperienceController extends AbstractController
     
 
     #[Route('/api/create/employe-experiences', name: 'api_employe_experience_create', methods: ['POST'])]
-    public function create(Request $request, EntityManagerInterface $entityManager): JsonResponse
-    {
-        $data = json_decode($request->getContent(), true);
-    
-        $employeExperience = new EmployeExperience();
-        $employeExperience->setEmployeExperiencePoste($data['employeExperiencePoste']);
-        $employeExperience->setEmployeExperienceSociete($data['employeExperienceSociete']);
-        $employeExperience->setEmployeExperienceOragnismeEmployeur($data['employeExperienceOragnismeEmployeur']);
-        $employeExperience->setEmployeExperiencePeriode(new \DateTime($data['employeExperiencePeriode']));
-        $employeExperience->setEmployeExperienceFonctionOccupe($data['employeExperienceFonctionOccupe']);
-    
-        // Récupérer l'employé associé
-        $employe = $entityManager->getRepository(Employe::class)->find($data['employeId']);
-        if (!$employe) {
-            return new JsonResponse(['message' => 'Employé introuvable'], Response::HTTP_NOT_FOUND);
-        }
-        $employeExperience->setEmploye($employe);
-    
-        $entityManager->persist($employeExperience);
-        $entityManager->flush();
-    
-        return new JsonResponse('Expérience employé créée avec succès', Response::HTTP_CREATED);
+public function create(Request $request, EntityManagerInterface $entityManager): JsonResponse
+{
+    $data = json_decode($request->getContent(), true);
+
+    $employeExperience = new EmployeExperience();
+    $employeExperience->setEmployeExperiencePoste($data['employeExperiencePoste']);
+    $employeExperience->setEmployeExperienceOragnismeEmployeur($data['employeExperienceOragnismeEmployeur']);
+    $employeExperience->setEmployeExperiencePeriode($data['employeExperiencePeriode']); // Pas besoin de conversion en DateTime
+    $employeExperience->setEmployeExperienceFonctionOccupe($data['employeExperienceFonctionOccupe']);
+
+    // Récupérer l'employé associé
+    $employe = $entityManager->getRepository(Employe::class)->find($data['employeId']);
+    if (!$employe) {
+        return new JsonResponse(['message' => 'Employé introuvable'], Response::HTTP_NOT_FOUND);
     }
-    
-    #[Route('/api/put/employe-experiences/{id}', name: 'api_employe_experience_update', methods: ['PUT', 'PATCH'])]
-    public function update(int $id, Request $request, EntityManagerInterface $entityManager): JsonResponse
-    {
-        $data = json_decode($request->getContent(), true);
-        $employeExperience = $entityManager->getRepository(EmployeExperience::class)->find($id);
+    $employeExperience->setEmploye($employe);
 
-        if (!$employeExperience) {
-            return new JsonResponse(['message' => 'Expérience employé introuvable'], Response::HTTP_NOT_FOUND);
-        }
+    $entityManager->persist($employeExperience);
+    $entityManager->flush();
 
-        // Mise à jour des propriétés de l'entité
-        $employeExperience->setEmployeExperiencePoste($data['employeExperiencePoste']);
-        $employeExperience->setEmployeExperienceSociete($data['employeExperienceSociete']);
-        $employeExperience->setEmployeExperienceOragnismeEmployeur($data['employeExperienceOragnismeEmployeur']);
-        $employeExperience->setEmployeExperiencePeriode(new \DateTime($data['employeExperiencePeriode']));
-        $employeExperience->setEmployeExperienceFonctionOccupe($data['employeExperienceFonctionOccupe']);
+    return new JsonResponse('Expérience employé créée avec succès', Response::HTTP_CREATED);
+}
 
-        $entityManager->flush();
+#[Route('/api/put/employe-experiences/{id}', name: 'api_employe_experience_update', methods: ['PUT', 'PATCH'])]
+public function update(int $id, Request $request, EntityManagerInterface $entityManager): JsonResponse
+{
+    $data = json_decode($request->getContent(), true);
+    $employeExperience = $entityManager->getRepository(EmployeExperience::class)->find($id);
 
-        return new JsonResponse(['message' => 'Expérience employé mise à jour avec succès']);
+    if (!$employeExperience) {
+        return new JsonResponse(['message' => 'Expérience employé introuvable'], Response::HTTP_NOT_FOUND);
     }
 
-    #[Route('/api/employe-experiences/{id}', name: 'api_employe_experience_delete', methods: ['DELETE'])]
-    public function delete(int $id, EntityManagerInterface $entityManager): JsonResponse
-    {
-        $employeExperience = $entityManager->getRepository(EmployeExperience::class)->find($id);
+    // Mise à jour des propriétés de l'entité
+    $employeExperience->setEmployeExperiencePoste($data['employeExperiencePoste']);
+    $employeExperience->setEmployeExperienceOragnismeEmployeur($data['employeExperienceOragnismeEmployeur']);
+    $employeExperience->setEmployeExperiencePeriode($data['employeExperiencePeriode']); // Pas besoin de conversion en DateTime
+    $employeExperience->setEmployeExperienceFonctionOccupe($data['employeExperienceFonctionOccupe']);
 
-        if (!$employeExperience) {
-            return new JsonResponse(['message' => 'Expérience employé introuvable'], Response::HTTP_NOT_FOUND);
-        }
+    $entityManager->flush();
 
-        $entityManager->remove($employeExperience);
-        $entityManager->flush();
+    return new JsonResponse(['message' => 'Expérience employé mise à jour avec succès']);
+}
 
-        return new JsonResponse(['message' => 'Expérience employé supprimée avec succès']);
-    }
 
-   
+#[Route('/api/delete/employe-experiences/{id}', name: 'api_employe_experiences_delete', methods: ['DELETE'])]
+public function delete(EmployeExperience $employeExperience, EntityManagerInterface $entityManager): JsonResponse
+{
+    $entityManager->remove($employeExperience);
+    $entityManager->flush();
+
+    return new JsonResponse('Formation employé supprimée avec succès', Response::HTTP_OK);
+}
     /**
      * Serialize EmployeEducation entity to array.
      */
@@ -111,7 +102,6 @@ class EmployeExperienceController extends AbstractController
         return [
             'employeExperienceId' => $employeExperience->getId(),
             'employeExperiencePoste' => $employeExperience->getEmployeExperiencePoste(),
-            'employeExperienceSociete' => $employeExperience->getEmployeExperienceSociete(),
             'employeExperienceOragnismeEmployeur' => $employeExperience->getEmployeExperienceOragnismeEmployeur(),
             'employeExperiencePeriode' => $employeExperience->getEmployeExperiencePeriode(),
             'employeExperienceFonctionOccupe' => $employeExperience->getEmployeExperienceFonctionOccupe(),

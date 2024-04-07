@@ -21,6 +21,25 @@ class NotificationRepository extends ServiceEntityRepository
         parent::__construct($registry, Notification::class);
     }
 
+    public function countUnreadNotifications(): int
+    {
+        return $this->createQueryBuilder('n')
+            ->select('COUNT(n)')
+            ->andWhere('n.isread= :isread')
+            ->setParameter('isread', false)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+    // Ajoutez la méthode findAllWithAppelOffre pour récupérer toutes les notifications avec les données de l'appel d'offre associées
+    public function findAllWithAppelOffre()
+    {
+        return $this->createQueryBuilder('n')
+            ->leftJoin('n.appelOffre', 'a') // Joignez l'entité AppelOffre avec l'alias 'a'
+            ->addSelect('a') // Sélectionnez l'entité AppelOffre pour l'inclure dans les résultats
+            ->getQuery()
+            ->getResult();
+    }
+
 //    /**
 //     * @return Notification[] Returns an array of Notification objects
 //     */

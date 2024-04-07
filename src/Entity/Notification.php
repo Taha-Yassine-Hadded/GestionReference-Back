@@ -22,6 +22,10 @@ class Notification
     #[Assert\NotBlank]
     private ?\DateTimeInterface $dateCreation = null;
 
+    #[ORM\Column(type: "boolean")]
+    private bool $isread = false;
+
+
     #[ORM\ManyToOne(targetEntity: AppelOffre::class)]
     #[Assert\NotBlank]
     private ?AppelOffre $appelOffre = null;
@@ -63,4 +67,15 @@ class Notification
         $this->appelOffre = $appelOffre;
         return $this;
     }
+    public function isRead(): bool
+{
+    return $this->read;
+}
+
+public function setRead(bool $read): self
+{
+    $this->read = $read;
+    return $this;
+}
+
 }

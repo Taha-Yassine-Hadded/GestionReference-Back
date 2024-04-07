@@ -25,7 +25,7 @@ class ProjetPreuve
     #[Assert\NotBlank]
     private ?Projet $projet ; 
 
-    #[ORM\OneToMany(mappedBy: 'projetPreuve', targetEntity: UploadFile::class)]
+    #[ORM\OneToMany(mappedBy: 'projetPreuve', targetEntity: UploadFile::class,cascade: ["persist","remove"])]
     private Collection $uploadFiles;
 
     public function __construct()

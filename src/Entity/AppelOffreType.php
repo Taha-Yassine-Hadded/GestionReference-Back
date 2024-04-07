@@ -13,14 +13,15 @@ class AppelOffreType
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(name: 'appel_offre_type_id', type: 'integer')]
-    private ?int $appelOffreTypeId;
+    #[ORM\Column]
+    private ?int $id;
 
-    #[ORM\Column(name: 'appel_offre_type', type: 'string', length: 255)]
+    #[ORM\Column(length: 255)]
     #[Assert\NotBlank]
     private ?string $appelOffreType;
 
     #[ORM\OneToMany(mappedBy: 'appelOffreType', targetEntity: AppelOffre::class,cascade: ["persist","remove"])]
+    #[Assert\NotBlank]
     private Collection $appelOffres;
 
     public function __construct()
@@ -28,9 +29,14 @@ class AppelOffreType
         $this->appelOffres = new ArrayCollection();
     }
 
-    public function getAppelOffreTypeId(): ?int
+    public function __toString()
     {
-        return $this->appelOffreTypeId;
+        return $this->id;
+    }
+
+    public function getId(): ?int
+    {
+        return $this->id;
     }
 
     public function getAppelOffreType(): ?string

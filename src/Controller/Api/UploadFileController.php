@@ -12,7 +12,7 @@ use App\Entity\UploadFile;
 use App\Entity\ProjetPreuve;
 
 class UploadFileController extends AbstractController
-{
+{   
     #[Route('/api/uploadfiles', name: 'api_uploadfile_create', methods: ['POST'])]
     public function create(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {

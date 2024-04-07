@@ -29,9 +29,9 @@ class EmployeEducation
     #[Assert\NotBlank]
     private ?string $employeEducationDiplomes = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: "date")]
     #[Assert\NotBlank]
-    private ?string $employeEducationAnneeObtention = null;
+    private  ?\DateTimeInterface  $employeEducationAnneeObtention = null;
 
     #[ORM\ManyToOne(targetEntity: Employe::class)]
     #[Assert\NotBlank]
@@ -83,17 +83,18 @@ class EmployeEducation
         return $this;
     }
 
-    public function getEmployeEducationAnneeObtention(): ?string
+    public function getEmployeEducationAnneeObtention(): ?\DateTimeInterface
     {
         return $this->employeEducationAnneeObtention;
     }
-
-    public function setEmployeEducationAnneeObtention(?string $employeEducationAnneeObtention): static
+    
+    public function setEmployeEducationAnneeObtention(?\DateTimeInterface $employeEducationAnneeObtention): static
     {
         $this->employeEducationAnneeObtention = $employeEducationAnneeObtention;
-
+    
         return $this;
     }
+    
     public function getEmploye(): ?Employe
     {
         return $this->employe;

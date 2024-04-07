@@ -15,7 +15,7 @@ class Client
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $clientId ;
+    private ?int $id ;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank]
@@ -29,19 +29,20 @@ class Client
     #[Assert\NotBlank]
     private ?string $clientAdresse = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 20)] // Changer la longueur selon les besoins
     #[Assert\NotBlank]
+    #[Assert\Regex('/^\d{8,}$/')] // Au moins 10 chiffres
     private ?string $clientTelephone = null;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank]
+    #[Assert\Email]
     private ?string $clientEmail = null;
 
     #[ORM\OneToMany(targetEntity: Projet::class, mappedBy: "client", cascade: ["persist","remove"])]
     private $projets;
 
     #[ORM\ManyToOne(targetEntity: NatureClient::class)]
-    #[ORM\JoinColumn(name: "nature_client_id", referencedColumnName: "nature_client_id", nullable: false)]
     #[Assert\NotBlank]
     private ?NatureClient $natureClient; 
 
@@ -51,9 +52,14 @@ class Client
     {
         $this->projets = new ArrayCollection();
     }
-    public function getClientId(): ?int
+    public function __toString()
     {
-        return $this->clientId;
+        return $this->id;
+    }
+
+    public function getId(): ?int
+    {
+        return $this->id;
     }
  
 

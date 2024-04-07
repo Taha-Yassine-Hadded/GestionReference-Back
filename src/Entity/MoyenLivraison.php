@@ -14,13 +14,14 @@ class MoyenLivraison
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $moyenLivraisonId = null;
+    private ?int $id = null;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank]
     private ?string $moyenLivraison = null;
 
     #[ORM\OneToMany(mappedBy: 'moyenLivraison', targetEntity: AppelOffre::class,cascade: ["persist","remove"])]
+    #[Assert\NotBlank]
     private Collection $appelOffres;
 
     public function __construct()
@@ -28,11 +29,15 @@ class MoyenLivraison
         $this->appelOffres = new ArrayCollection();
     }
 
-    public function getMoyenLivraisonId(): ?int
+    public function __toString()
     {
-        return $this->moyenLivraisonId;
+        return $this->id;
     }
 
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
     public function getMoyenLivraison(): ?string
     {
         return $this->moyenLivraison;

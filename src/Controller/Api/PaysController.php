@@ -33,7 +33,7 @@ class PaysController extends AbstractController
     public function show(Pays $pays): JsonResponse
     {
         $data = [
-            'paysId' => $pays->getPaysId(),
+            'paysId' => $pays->getId(),
             'paysNom' => $pays->getPaysNom(),
             // Ajoutez d'autres attributs du pays que vous souhaitez inclure
         ];
@@ -53,7 +53,7 @@ class PaysController extends AbstractController
         // Boucler à travers chaque pays pour extraire les informations nécessaires
         foreach ($pays as $paysItem) {
             $paysData[] = [
-                'paysId' => $paysItem->getPaysId(),
+                'paysId' => $paysItem->getId(),
                 'paysNom' => $paysItem->getPaysNom(),
                 // Ajouter d'autres attributs de pays si nécessaire
             ];

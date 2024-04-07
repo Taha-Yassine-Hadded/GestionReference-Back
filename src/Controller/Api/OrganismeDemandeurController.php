@@ -34,7 +34,7 @@ class OrganismeDemandeurController extends AbstractController
 
         foreach ($organismeDemandeurs as $organismeDemandeur) {
             $data[] = [
-                'organismeDemandeurId' => $organismeDemandeur->getOrganismeDemandeurId(),
+                'organismeDemandeurId' => $organismeDemandeur->getId(),
                 'organismeDemandeurLibelle' => $organismeDemandeur->getOrganismeDemandeurLibelle(),
             ];
         }
@@ -46,7 +46,7 @@ class OrganismeDemandeurController extends AbstractController
     public function getOne(OrganismeDemandeur $organismeDemandeur): JsonResponse
     {
         $data = [
-            'organismeDemandeurId' => $organismeDemandeur->getOrganismeDemandeurId(),
+            'organismeDemandeurId' => $organismeDemandeur->getId(),
             'organismeDemandeurLibelle' => $organismeDemandeur->getOrganismeDemandeurLibelle(),
         ];
 

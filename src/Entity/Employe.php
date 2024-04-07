@@ -60,11 +60,11 @@ class Employe
     private Collection $educations;
 
  
-    #[ORM\ManyToMany(targetEntity: Langue::class, inversedBy: 'employes',cascade: ["persist","remove"])]
+    #[ORM\ManyToMany(targetEntity: Langue::class, inversedBy: 'employe')]
     #[Assert\NotBlank]
     private Collection $langues;
    
-    #[ORM\OneToMany(targetEntity: ProjetEmployePoste::class, mappedBy: 'employes',cascade: ["persist","remove"])]
+    #[ORM\OneToMany(targetEntity: ProjetEmployePoste::class, mappedBy: 'employe',cascade: ["persist","remove"])]
     private Collection $projetsEmployePostes ;
 
     public function __construct()

@@ -15,13 +15,14 @@ class OrganismeDemandeur
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $organismeDemandeurId = null;
+    private ?int $id = null;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank]
     private ?string $organismeDemandeurLibelle = null;
 
     #[ORM\OneToMany(targetEntity: AppelOffre::class, mappedBy: 'organismeDemandeur',cascade: ["persist","remove"])]
+    #[Assert\NotBlank]
     private Collection $appelOffres;
 
     public function __construct()
@@ -29,9 +30,14 @@ class OrganismeDemandeur
         $this->appelOffres = new ArrayCollection();
     }
 
-    public function getOrganismeDemandeurId(): ?int
+    public function __toString()
     {
-        return $this->organismeDemandeurId;
+        return $this->id;
+    }
+
+    public function getId(): ?int
+    {
+        return $this->id;
     }
 
     public function getOrganismeDemandeurLibelle(): ?string

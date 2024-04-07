@@ -34,7 +34,7 @@ class AppelOffreTypeController extends AbstractController
 
         foreach ($appelOffreTypes as $appelOffreType) {
             $data[] = [
-                'appelOffreTypeId' => $appelOffreType->getAppelOffreTypeId(),
+                'appelOffreTypeId' => $appelOffreType->getId(),
                 'appelOffreType' => $appelOffreType->getAppelOffreType(),
             ];
         }
@@ -46,7 +46,7 @@ class AppelOffreTypeController extends AbstractController
     public function show(AppelOffreType $appelOffreType): JsonResponse
     {
         $data = [
-            'appelOffreTypeId' => $appelOffreType->getAppelOffreTypeId(),
+            'appelOffreTypeId' => $appelOffreType->getId(),
             'appelOffreType' => $appelOffreType->getAppelOffreType(),
         ];
 

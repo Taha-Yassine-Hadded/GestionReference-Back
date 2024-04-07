@@ -6,13 +6,13 @@ use App\Entity\Projet;
 use App\Entity\Client;
 use App\Entity\Categorie;
 use App\Entity\Lieu;
-use App\Entity\Employe;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Doctrine\ORM\EntityManagerInterface;
+
 
 class ProjetController extends AbstractController
 {
@@ -53,17 +53,6 @@ class ProjetController extends AbstractController
             $projet->addCategorie($categorie);
         }
 
-       // Ajouter les employés associés au projet
-foreach ($data['employes'] as $employeData) {
-    $employeId = $employeData['id'];
-    $employe = $entityManager->getRepository(Employe::class)->find($employeId);
-    dump($employe); // Vérifier si l'employé est récupéré correctement
-    if (!$employe) {
-        return new JsonResponse(['message' => 'Employé introuvable pour l\'ID : ' . $employeId], Response::HTTP_NOT_FOUND);
-    }
-    $projet->addEmploye($employe);
-}
-   
         $entityManager->persist($projet);
         $entityManager->flush();
     
@@ -109,11 +98,8 @@ foreach ($data['employes'] as $employeData) {
      */
     private function serializeProjet(Projet $projet): array
     {
-        $categories = [];
-        foreach ($projet->getCategories() as $categorie) {
-            $categories[] = $categorie->getCategorie();
-        }
-
+        $categories = $this->serializeCategories($projet->getCategories());
+        // Here, you can serialize other related entities like employes if needed
         return [
             'id' => $projet->getId(),
             'projetLibelle' => $projet->getProjetLibelle(),
@@ -123,39 +109,27 @@ foreach ($data['employes'] as $employeData) {
             'projetDateAchevement' => $projet->getProjetDateAchevement()->format('Y-m-d'),
             'projetUrlFonctionnel' => $projet->getProjetUrlFonctionnel(),
             'ProjetDescriptionServiceEffectivementRendus' => $projet->getProjetDescriptionServiceEffectivementRendus(),
-            'clientId' =>  $projet->getClient() ?  $projet->getClient()->getClientId() : null,
-            'lieuId' =>  $projet->getLieu() ?  $projet->getLieu()->getLieuId() : null,
-            'categories' => $this->serializeCategories($projet->getCategories()),
-            'employes' => $this->serializeEmployes($projet->getEmployes()), // Appel à la méthode serializeCategories pour obtenir les informations sur les catégories
-           
+            'clientId' =>  $projet->getClient() ?  $projet->getClient()->getId() : null,
+            'lieuId' =>  $projet->getLieu() ?  $projet->getLieu()->getId() : null,
+            'categories' => $categories,
         ];
     }
-/**
- * Serialize Categories associated with Projet entity to array.
- */
-private function serializeCategories($categories): array
-{
-    $serializedCategories = [];
-    foreach ($categories as $categorie) {
-        $serializedCategories[] = [
-            'id' => $categorie->getId(),
-            'categorie' => $categorie->getCategorie(),
-            // Ajoutez d'autres propriétés de catégorie si nécessaire
-        ];
-    }}
-  /**
- * Serialize Categories associated with Projet entity to array.
- */
-private function serializeEmployes($employes): array
-{
-    $serializedEmployes = [];
-    foreach ($employes as $employe) {
-        $serializedEmployes[] = [
-            'id' => $employe->getId(),
-         
-            // Ajoutez d'autres propriétés de catégorie si nécessaire
-        ];
+
+    /**
+     * Serialize Categories associated with Projet entity to array.
+     */
+    private function serializeCategories($categories): array
+    {
+        $serializedCategories = [];
+        foreach ($categories as $categorie) {
+            $serializedCategories[] = [
+                'id' => $categorie->getId(),
+                'categorie' => $categorie->getCategorie(),
+                // Add other category properties here if needed
+            ];
+        }
+        return $serializedCategories;
     }
-}
+
     // Add other methods if needed
 }

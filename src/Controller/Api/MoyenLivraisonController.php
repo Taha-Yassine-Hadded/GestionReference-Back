@@ -34,7 +34,7 @@ class MoyenLivraisonController extends AbstractController
 
         foreach ($moyenLivraisons as $moyenLivraison) {
             $data[] = [
-                'moyenLivraisonId' => $moyenLivraison->getMoyenLivraisonId(),
+                'moyenLivraisonId' => $moyenLivraison->getId(),
                 'moyenLivraison' => $moyenLivraison->getMoyenLivraison(),
             ];
         }
@@ -46,7 +46,7 @@ class MoyenLivraisonController extends AbstractController
     public function getOne(MoyenLivraison $moyenLivraison): JsonResponse
     {
         $data = [
-            'moyenLivraisonId' => $moyenLivraison->getMoyenLivraisonId(),
+            'moyenLivraisonId' => $moyenLivraison->getId(),
             'moyenLivraison' => $moyenLivraison->getMoyenLivraison(),
         ];
 

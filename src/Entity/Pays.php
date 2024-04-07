@@ -15,13 +15,13 @@ class Pays
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $paysId = null;
+    private ?int $id = null;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank]
     private ?string $paysNom = null;
 
-    #[ORM\OneToMany(targetEntity: Lieu::class, mappedBy: "pays",cascade: ["persist","remove"])]
+    #[ORM\OneToMany(targetEntity: Lieu::class, mappedBy: "pays")]
     private $lieux;
 
     public function __construct()
@@ -30,9 +30,14 @@ class Pays
     }
 
 
-    public function getPaysId(): ?int
+    public function __toString()
     {
-        return $this->paysId;
+        return $this->id;
+    }
+
+    public function getId(): ?int
+    {
+        return $this->id;
     }
 
     public function getPaysNom(): ?string

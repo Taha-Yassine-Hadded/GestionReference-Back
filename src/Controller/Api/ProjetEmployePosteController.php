@@ -83,12 +83,10 @@ class ProjetEmployePosteController extends AbstractController
         return [
             'id' => $projetEmployePoste->getId(),
             'duree' => $projetEmployePoste->getDuree(),
-            'employes' => $this->serializeEmployes($projetEmployePoste->getEmploye()),
-            'projets' => $this->serializeProjets([$projetEmployePoste->getProjet()]),
-            'poste' => [
-                'poste_id' => $projetEmployePoste->getPoste()->getId(),
-                // Ajoutez d'autres propriétés du poste si nécessaire
-            ],
+            'employe_id' => $projetEmployePoste->getEmploye()->getId(),
+            'projet_id' => $projetEmployePoste->getProjet()->getId(),
+            'poste_id' => $projetEmployePoste->getPoste()->getId(),
+           
             // Ajoutez d'autres propriétés de l'entité ProjetEmployePoste si nécessaire
         ];
     }

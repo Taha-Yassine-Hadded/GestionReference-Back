@@ -7,19 +7,19 @@ use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Validator\Constraints as Assert;
-use Doctrine\DBAL\Types\Types;
 
 #[ORM\Entity(repositoryClass: NatureClientRepository::class)]
 class NatureClient
 {
+    
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $natureClientId = null;
+    private ?int $id;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255)] // Ajout de 'unique: true' pour garantir l'unicité
     #[Assert\NotBlank]
-    private ?string $natureClient = null;
+    private ?string  $natureClient;
 
     #[ORM\OneToMany(targetEntity: Client::class, mappedBy: "natureClient",cascade: ["persist","remove"])]
     private $clients;
@@ -29,22 +29,27 @@ class NatureClient
         $this->clients = new ArrayCollection();
     }
 
-    public function getNatureClientId(): ?int
+    public function __toString()
     {
-        return $this->natureClientId;
+        return $this->id;
     }
 
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
     public function getNatureClient(): ?string
     {
         return $this->natureClient;
     }
 
-    public function setNatureClient(string $natureClient): static
+    public function setNatureClient(string $natureClient): self
     {
         $this->natureClient = $natureClient;
 
         return $this;
     }
+
     /**
      * @return Collection|Client[]
      */

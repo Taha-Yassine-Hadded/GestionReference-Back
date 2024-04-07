@@ -63,22 +63,41 @@ class NotificationController extends AbstractController
         'affected_appel_offres_ids' => $affectedAppelOffresIds,
     ]);
 }
-#[Route('/api/notifications/unread-count', name: 'api_notifications_unread_count', methods: ['GET'])] // Renommez la route pour le comptage des notifications non lues
-public function getUnreadNotificationCount(NotificationRepository $notificationRepository): JsonResponse
-{
-    // Récupérer l'utilisateur connecté (vous devrez peut-être ajuster cela selon votre système d'authentification)
-    $user = $this->getUser();
+#[Route('/api/notifications/unread-count', name: 'api_notifications_unread_count', methods: ['GET'])]
+    public function getUnreadNotificationCount(NotificationRepository $notificationRepository): JsonResponse
+    {
+        // Récupérer le nombre de notifications non lues
+        $unreadNotificationCount = $notificationRepository->countUnreadNotifications();
 
-    // Vérifier si l'utilisateur est connecté
-    if (!$user) {
-        // Retourner une réponse d'erreur si l'utilisateur n'est pas connecté
-        return new JsonResponse(['error' => 'User not authenticated'], 401);
+        // Retourner le nombre de notifications non lues au format JSON
+        return new JsonResponse(['unread_notification_count' => $unreadNotificationCount]);
+    }
+    #[Route('/api/notifications/all', name: 'api_notifications_all', methods: ['GET'])]
+public function getNotifications(NotificationRepository $notificationRepository): JsonResponse
+{
+    // Récupérer toutes les notifications avec les données de l'appel d'offre associées
+    $notifications = $notificationRepository->findAllWithAppelOffre();
+
+    // Convertir les notifications en un tableau associatif pour le retour JSON
+    $notificationsArray = [];
+    foreach ($notifications as $notification) {
+        $notificationsArray[] = [
+            'id' => $notification->getId(),
+            'message' => $notification->getMessage(),
+            'dateCreation' => $notification->getDateCreation()->format('Y-m-d H:i:s'), // Formatage de la date
+            'appelOffre' => [
+                'id' => $notification->getAppelOffre()->getId(),
+                'devis' => $notification->getAppelOffre()->getAppelOffreDevis(),
+                'objet' => $notification->getAppelOffre()->getAppelOffreObjet(),
+                'dateRemise' => $notification->getAppelOffre()->getAppelOffreDateRemise() ? $notification->getAppelOffre()->getAppelOffreDateRemise()->format('Y-m-d') : null,
+                // Ajoutez d'autres propriétés de l'appel d'offre si nécessaire
+            ],
+            // Ajoutez d'autres propriétés de notification si nécessaire
+        ];
     }
 
-    // Récupérer le nombre de notifications non lues pour l'utilisateur connecté
-    $unreadNotificationCount = $notificationRepository->countUnreadNotificationsForUser($user);
-
-    // Retourner le nombre de notifications non lues au format JSON
-    return new JsonResponse(['unread_notification_count' => $unreadNotificationCount]);
+    // Retourner les notifications au format JSON
+    return new JsonResponse($notificationsArray);
 }
+
 }

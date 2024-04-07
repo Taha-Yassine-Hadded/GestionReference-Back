@@ -36,36 +36,38 @@ class EmployeEducationController extends AbstractController
     public function create(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-
+    
         $employeEducation = new EmployeEducation();
         $employeEducation->setEmployeEducationNatureEtudes($data['employeEducationNatureEtudes']);
         $employeEducation->setEmployeEducationEtablissement($data['employeEducationEtablissement']);
         $employeEducation->setEmployeEducationDiplomes($data['employeEducationDiplomes']);
-        $employeEducation->setEmployeEducationAnneeObtention($data['employeEducationAnneeObtention']);
-
+        $employeEducation->setEmployeEducationAnneeObtention(new \DateTime($data['employeEducationAnneeObtention']));
+    
         // Récupérer l'employé associé
         $employe = $entityManager->getRepository(Employe::class)->find($data['employeId']);
         if (!$employe) {
             return new JsonResponse(['message' => 'Employé introuvable'], Response::HTTP_NOT_FOUND);
         }
         $employeEducation->setEmploye($employe);
-
+    
         $entityManager->persist($employeEducation);
         $entityManager->flush();
-
+    
         return new JsonResponse('Formation employé créée avec succès', Response::HTTP_CREATED);
     }
+    
 
     #[Route('/api/put/employe-educations/{id}', name: 'api_employe_education_update', methods: ['PUT'])]
     public function update(Request $request, EmployeEducation $employeEducation, EntityManagerInterface $entityManager): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-
+    
         $employeEducation->setEmployeEducationNatureEtudes($data['employeEducationNatureEtudes']);
         $employeEducation->setEmployeEducationEtablissement($data['employeEducationEtablissement']);
         $employeEducation->setEmployeEducationDiplomes($data['employeEducationDiplomes']);
-        $employeEducation->setEmployeEducationAnneeObtention($data['employeEducationAnneeObtention']);
-
+        // Assurez-vous que la date envoyée est valide et dans le bon format
+        $employeEducation->setEmployeEducationAnneeObtention(new \DateTime($data['employeEducationAnneeObtention']));
+    
         // Mise à jour de l'employé associé
         if (isset($data['employeId'])) {
             $employe = $entityManager->getRepository(Employe::class)->find($data['employeId']);
@@ -74,12 +76,12 @@ class EmployeEducationController extends AbstractController
             }
             $employeEducation->setEmploye($employe);
         }
-
+    
         $entityManager->flush();
-
+    
         return new JsonResponse('Formation employé mise à jour avec succès', Response::HTTP_OK);
     }
-
+    
     #[Route('/api/delete/employe-educations/{id}', name: 'api_employe_education_delete', methods: ['DELETE'])]
     public function delete(EmployeEducation $employeEducation, EntityManagerInterface $entityManager): JsonResponse
     {
@@ -99,7 +101,7 @@ class EmployeEducationController extends AbstractController
             'employeEducationNatureEtudes' => $employeEducation->getEmployeEducationNatureEtudes(),
             'employeEducationEtablissement' => $employeEducation->getEmployeEducationEtablissement(),
             'employeEducationDiplomes' => $employeEducation->getEmployeEducationDiplomes(),
-            'employeEducationAnneeObtention' => $employeEducation->getEmployeEducationAnneeObtention(),
+            'employeEducationAnneeObtention' => $employeEducation->getEmployeEducationAnneeObtention()->format('Y-m-d'),
             'employeId' => $employeEducation->getEmploye()->getId(),
             // Ajoutez d'autres attributs de l'entité que vous souhaitez inclure dans la réponse JSON
         ];

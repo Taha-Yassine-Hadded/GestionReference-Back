@@ -49,9 +49,9 @@ class LieuController extends AbstractController
         $lieuxData = [];
         foreach ($lieux as $lieu) {
             $lieuxData[] = [
-                'lieuId' => $lieu->getLieuId(),
+                'lieuId' => $lieu->getId(),
                 'lieuNom' => $lieu->getLieuNom(),
-                'paysId' => $lieu->getPays()->getPaysId(),
+                'paysId' => $lieu->getPays()->getId(),
                   
             ];
         }
@@ -62,9 +62,9 @@ class LieuController extends AbstractController
     public function show(Lieu $lieu): JsonResponse
     {
         $data = [
-            'lieuId' => $lieu->getLieuId(),
+            'lieuId' => $lieu->getId(),
             'lieuNom' => $lieu->getLieuNom(),
-            'paysId' => $lieu->getPays()->getPaysId(),
+            'paysId' => $lieu->getPays()->getId(),
                
         ];
 

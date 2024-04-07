@@ -15,7 +15,7 @@ class Lieu
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $lieuId = null;
+    private ?int $id = null;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank]
@@ -23,7 +23,6 @@ class Lieu
 
     
     #[ORM\ManyToOne(targetEntity: Pays::class)]
-    #[ORM\JoinColumn(name: "pays_id", referencedColumnName: "pays_id", nullable: false)]
     #[Assert\NotBlank]
     private ?Pays $pays = null;
 
@@ -36,11 +35,15 @@ class Lieu
         $this->projets = new ArrayCollection();
     }
  
-    public function getLieuId(): ?int
+    public function __toString()
     {
-        return $this->lieuId;
+        return $this->id;
     }
 
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
     public function getLieuNom(): ?string
     {
         return $this->lieuNom;

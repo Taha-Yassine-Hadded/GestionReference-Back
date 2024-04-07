@@ -34,7 +34,7 @@ class NatureClientController extends AbstractController
 
         foreach ($natureClients as $natureClient) {
             $data[] = [
-                'id' => $natureClient->getNatureClientId(),
+                'id' => $natureClient->getId(),
                 'natureClient' => $natureClient->getNatureClient(),
             ];
         }
@@ -46,7 +46,7 @@ class NatureClientController extends AbstractController
     public function show(NatureClient $natureClient): JsonResponse
     {
         $data = [
-            'id' => $natureClient->getNatureClientId(),
+            'id' => $natureClient->getId(),
             'natureClient' => $natureClient->getNatureClient(),
         ];
 

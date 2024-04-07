@@ -27,6 +27,11 @@ class ProjetEmployePoste
     #[ORM\ManyToOne(targetEntity: Poste::class, inversedBy: 'projetsEmployePostes')]
     private Poste $poste;
 
+    public function __toString()
+    {
+        return $this->id;
+    }
+
     public function getId(): ?int
     {
         return $this->id;

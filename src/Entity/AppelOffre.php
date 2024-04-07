@@ -42,16 +42,13 @@ class AppelOffre
     #[Assert\NotBlank]
     private ?int $appelOffreEtat;
 
-    #[ORM\ManyToOne(targetEntity: AppelOffreType::class, inversedBy: 'appelOffres',cascade: ["persist","remove"])]
-    #[ORM\JoinColumn(name: "appel_offre_type_id", referencedColumnName: "appel_offre_type_id")]
+    #[ORM\ManyToOne(targetEntity: AppelOffreType::class, inversedBy: 'appelOffres')]
     private ?AppelOffreType $appelOffreType;
     
-    #[ORM\ManyToOne(targetEntity: MoyenLivraison::class, inversedBy: 'appelOffres',cascade: ["persist","remove"])]
-    #[ORM\JoinColumn(name:"moyen_livraison_id", referencedColumnName:"moyen_livraison_id")]
+    #[ORM\ManyToOne(targetEntity: MoyenLivraison::class, inversedBy: 'appelOffres')]
     private ?MoyenLivraison $moyenLivraison= null;
     
-    #[ORM\ManyToOne(targetEntity: OrganismeDemandeur::class, inversedBy: 'appelOffres',cascade: ["persist","remove"])]
-    #[ORM\JoinColumn(name:"organisme_demandeur_id", referencedColumnName:"organisme_demandeur_id")]
+    #[ORM\ManyToOne(targetEntity: OrganismeDemandeur::class, inversedBy: 'appelOffres')]
     private OrganismeDemandeur $organismeDemandeur;
 
     public function __toString()
