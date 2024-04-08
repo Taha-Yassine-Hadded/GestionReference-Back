@@ -20,6 +20,12 @@ use Symfony\Component\Security\Core\Authorization\Voter\RoleVoter;
 use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use  Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+use Symfony\Component\Security\Core\Exception\LogicException;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Mime\Email;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+
 
 
 class UserController extends AbstractController
@@ -92,15 +98,15 @@ class UserController extends AbstractController
 
         // Authentification réussie, générer le jeton JWT
         $token = $this->jwtManager->create($user);
-      
+
         // Retourner le jeton JWT dans la réponse
         return new JsonResponse(['token' => $token]);
     }
 
     #[Route('/api/getUsers', name: 'get_users', methods: ['GET'])]
-    public function getUsers(Request $request,AuthorizationCheckerInterface $authorizationChecker): JsonResponse
+    public function getUsers(Request $request, AuthorizationCheckerInterface $authorizationChecker): JsonResponse
     {
-       
+
         // Mettez votre logique pour récupérer les utilisateurs ici
         $users = $this->getDoctrine()->getRepository(User::class)->findAll();
 
@@ -116,5 +122,39 @@ class UserController extends AbstractController
 
         // Retourner la réponse JSON avec tous les utilisateurs
         return new JsonResponse($usersArray);
+    }
+
+    #[Route('/forgot-password', name: 'forgot_password', methods: ['POST'])]
+    public function forgotPassword(Request $request, UserRepository $userRepository, MailerInterface $mailer): Response
+    {
+        $data = json_decode($request->getContent(), true);
+        $email = $data['email'];
+
+        // Récupérer l'utilisateur à partir de l'email
+        $user = $userRepository->findOneBy(['email' => $email]);
+
+        if (!$user) {
+            return new JsonResponse(['message' => 'Utilisateur non trouvé'], Response::HTTP_NOT_FOUND);
+        }
+
+        // Générer un jeton de réinitialisation de mot de passe
+        $resetToken = bin2hex(random_bytes(32));
+        $user->setResetToken($resetToken);
+
+        // Enregistrer le jeton de réinitialisation de mot de passe dans la base de données
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
+
+        // Envoyer un email de réinitialisation de mot de passe à l'utilisateur
+        $email = (new Email())
+            ->from('anas.boushih@gmail.com')
+            ->to($user->getEmail())
+            ->subject('Réinitialisation de mot de passe')
+            ->text('Pour réinitialiser votre mot de passe, cliquez sur ce lien : ' . $this->generateUrl('reset_password', ['token' => $resetToken], UrlGeneratorInterface::ABSOLUTE_URL));
+
+        $mailer->send($email);
+
+        // Répondre avec un message de succès
+        return new JsonResponse(['message' => 'Un email de réinitialisation de mot de passe a été envoyé à votre adresse email']);
     }
 }

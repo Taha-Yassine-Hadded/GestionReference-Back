@@ -5,3 +5,7 @@ controllers:
     type: attribute
 api_login_check:
     path: /api/login_check
+reset_password:
+    path: /api/reset-password/{token}
+    controller: App\Controller\Api\ResetPasswordController::resetPassword
+    methods: [POST]
