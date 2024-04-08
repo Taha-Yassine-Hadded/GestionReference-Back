@@ -92,7 +92,7 @@ class UserController extends AbstractController
 
         // Authentification réussie, générer le jeton JWT
         $token = $this->jwtManager->create($user);
-
+      
         // Retourner le jeton JWT dans la réponse
         return new JsonResponse(['token' => $token]);
     }
