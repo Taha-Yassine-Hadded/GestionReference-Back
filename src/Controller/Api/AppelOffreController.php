@@ -15,6 +15,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 
 class AppelOffreController extends AbstractController
 {
@@ -59,30 +62,22 @@ class AppelOffreController extends AbstractController
     }
 
     #[Route('/api/get/appel-offres/{id}', name: 'api_appel_offres_get', methods: ['GET'])]
-    public function getOne(int $id, AppelOffreRepository $appelOffreRepository, Request $request, Security $security): JsonResponse
+    public function getOne(int $id, AppelOffreRepository $appelOffreRepository, Request $request, TokenStorageInterface $tokenStorage): JsonResponse
     {
-        // Vérifier le token JWT
-        $token = $security->getToken();
-        if (!$token) {
-            throw new AccessDeniedHttpException('Token JWT manquant');
+        // Récupérer le token d'authentification de Symfony
+        $token = $tokenStorage->getToken();
+    
+        // Vérifier si le token d'authentification est présent et est de type TokenInterface
+        if (!$token instanceof TokenInterface) {
+            throw new AccessDeniedHttpException('Token d\'authentification manquant ou invalide');
         }
-    
-        // Récupérer l'utilisateur à partir du token JWT
-        $user = $token->getUser();
-        if (!$user) {
-            throw new AccessDeniedHttpException('Utilisateur non authentifié');
-        }
-    
-      
-    
-        // Récupérer l'appel d'offre
+       
         $appelOffre = $appelOffreRepository->find($id);
     
         if (!$appelOffre) {
             return new JsonResponse(['message' => 'Appel d\'offre non trouvé'], Response::HTTP_NOT_FOUND);
         }
     
-        // Utiliser la fonction serializeAppelOffre pour convertir l'entité en tableau
         $appelOffreArray = $this->serializeAppelOffre($appelOffre);
     
         return new JsonResponse($appelOffreArray);
