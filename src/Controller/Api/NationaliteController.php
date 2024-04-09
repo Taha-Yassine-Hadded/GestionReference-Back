@@ -9,12 +9,19 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Security\Core\Security;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 
 class NationaliteController extends AbstractController
 {
+   
     #[Route('/api/create/nationalite', name: 'api_nationalite_create', methods: ['POST'])]
-    public function create(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    public function create(Request $request, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $data = json_decode($request->getContent(), true);
 
         $nationalite = new Nationalite();
@@ -27,8 +34,9 @@ class NationaliteController extends AbstractController
     }
 
     #[Route('/api/get/nationalite/{id}', name: 'api_nationalite_show', methods: ['GET'])]
-    public function show(Nationalite $nationalite): JsonResponse
+    public function show(Nationalite $nationalite, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $data = [
             'id' => $nationalite->getId(),
             'nationaliteLibelle' => $nationalite->getNationaliteLibelle(),
@@ -38,8 +46,9 @@ class NationaliteController extends AbstractController
     }
 
     #[Route('/api/getAll/nationalites', name: 'api_nationalite_index', methods: ['GET'])]
-    public function index(EntityManagerInterface $entityManager): JsonResponse
+    public function index(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $nationalites = $entityManager->getRepository(Nationalite::class)->findAll();
         $data = [];
 
@@ -55,8 +64,9 @@ class NationaliteController extends AbstractController
    
 
     #[Route('/api/put/nationalite/{id}', name: 'api_nationalite_update', methods: ['PUT'])]
-    public function update(Request $request, Nationalite $nationalite, EntityManagerInterface $entityManager): JsonResponse
+    public function update(Request $request, Nationalite $nationalite, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $data = json_decode($request->getContent(), true);
 
         $nationalite->setNationaliteLibelle($data['nationaliteLibelle']);
@@ -67,11 +77,23 @@ class NationaliteController extends AbstractController
     }
 
     #[Route('/api/delete/nationalite/{id}', name: 'api_nationalite_delete', methods: ['DELETE'])]
-    public function delete(Nationalite $nationalite, EntityManagerInterface $entityManager): JsonResponse
+    public function delete(Nationalite $nationalite, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $entityManager->remove($nationalite);
         $entityManager->flush();
 
         return new JsonResponse('Nationalité supprimée avec succès', Response::HTTP_OK);
     }
+    public function checkToken(TokenStorageInterface $tokenStorage): void
+    {
+        // Récupérer le token d'authentification de Symfony
+        $token = $tokenStorage->getToken();
+
+        // Vérifier si le token d'authentification est présent et est de type TokenInterface
+        if (!$token instanceof TokenInterface) {
+            throw new AccessDeniedHttpException('Token d\'authentification manquant ou invalide');
+        }
+
+}
 }

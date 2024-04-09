@@ -10,12 +10,18 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Security\Core\Security;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 
 class ProjetPreuveController extends AbstractController
 {
     #[Route('/api/getAll/projet-preuves', name: 'api_projet_preuve_index', methods: ['GET'])]
-    public function index(EntityManagerInterface $entityManager): JsonResponse
+    public function index(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
        $projetPreuves = $entityManager->getRepository(ProjetPreuve::class)->findAll();
         $data = [];
 
@@ -27,14 +33,16 @@ class ProjetPreuveController extends AbstractController
     }
 
     #[Route('/api/get/projet-preuves/{id}', name: 'api_projet_preuve_show', methods: ['GET'])]
-    public function show(ProjetPreuve $projetPreuve): JsonResponse
+    public function show(ProjetPreuve $projetPreuve, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         return new JsonResponse($this->serializeProjetPreuve($projetPreuve), Response::HTTP_OK);
     }
 
     #[Route('/api/create/projet-preuves', name: 'api_projet_preuve_create', methods: ['POST'])]
-    public function create(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    public function create(Request $request, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $data = json_decode($request->getContent(), true);
 
         $projetPreuve = new ProjetPreuve();
@@ -54,8 +62,9 @@ class ProjetPreuveController extends AbstractController
     }
 
     #[Route('/api/put/projet-preuves/{id}', name: 'api_projet_preuve_update', methods: ['PUT'])]
-    public function update(Request $request, ProjetPreuve $projetPreuve, EntityManagerInterface $entityManager): JsonResponse
+    public function update(Request $request, ProjetPreuve $projetPreuve, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $data = json_decode($request->getContent(), true);
 
         $projetPreuve->setProjetPreuveLibelle($data['projetPreuveLibelle']);
@@ -75,8 +84,9 @@ class ProjetPreuveController extends AbstractController
     }
 
     #[Route('/api/delete/projet-preuves/{id}', name: 'api_projet_preuve_delete', methods: ['DELETE'])]
-    public function delete(ProjetPreuve $projetPreuve, EntityManagerInterface $entityManager): JsonResponse
+    public function delete(ProjetPreuve $projetPreuve, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $entityManager->remove($projetPreuve);
         $entityManager->flush();
 
@@ -96,4 +106,15 @@ class ProjetPreuveController extends AbstractController
         
         ];
     }
+    public function checkToken(TokenStorageInterface $tokenStorage): void
+    {
+        // Récupérer le token d'authentification de Symfony
+        $token = $tokenStorage->getToken();
+
+        // Vérifier si le token d'authentification est présent et est de type TokenInterface
+        if (!$token instanceof TokenInterface) {
+            throw new AccessDeniedHttpException('Token d\'authentification manquant ou invalide');
+        }
+
+}
 }

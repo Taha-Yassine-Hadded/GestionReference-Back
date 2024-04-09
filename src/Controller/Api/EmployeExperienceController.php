@@ -11,12 +11,18 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Security;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 
 class EmployeExperienceController extends AbstractController
 {
     #[Route('/api/getAll/employe/experiences', name: 'api_employe_experience_index', methods: ['GET'])]
-    public function index(EmployeExperienceRepository $repository): JsonResponse
+    public function index(EmployeExperienceRepository $repository, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $experiences = $repository->findAll();
 
         $data = [];
@@ -28,8 +34,9 @@ class EmployeExperienceController extends AbstractController
     }
 
     #[Route('/api/employe-experiences/{id}', name: 'api_employe_experience_get', methods: ['GET'])]
-    public function show(int $id, EntityManagerInterface $entityManager): JsonResponse
+    public function show(int $id, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $employeExperience = $entityManager->getRepository(EmployeExperience::class)->find($id);
     
         if (!$employeExperience) {
@@ -41,8 +48,9 @@ class EmployeExperienceController extends AbstractController
     
 
     #[Route('/api/create/employe-experiences', name: 'api_employe_experience_create', methods: ['POST'])]
-public function create(Request $request, EntityManagerInterface $entityManager): JsonResponse
+public function create(Request $request, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
 {
+    $this->checkToken($tokenStorage);
     $data = json_decode($request->getContent(), true);
 
     $employeExperience = new EmployeExperience();
@@ -65,8 +73,9 @@ public function create(Request $request, EntityManagerInterface $entityManager):
 }
 
 #[Route('/api/put/employe-experiences/{id}', name: 'api_employe_experience_update', methods: ['PUT', 'PATCH'])]
-public function update(int $id, Request $request, EntityManagerInterface $entityManager): JsonResponse
+public function update(int $id, Request $request, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
 {
+    $this->checkToken($tokenStorage);
     $data = json_decode($request->getContent(), true);
     $employeExperience = $entityManager->getRepository(EmployeExperience::class)->find($id);
 
@@ -87,8 +96,9 @@ public function update(int $id, Request $request, EntityManagerInterface $entity
 
 
 #[Route('/api/delete/employe-experiences/{id}', name: 'api_employe_experiences_delete', methods: ['DELETE'])]
-public function delete(EmployeExperience $employeExperience, EntityManagerInterface $entityManager): JsonResponse
+public function delete(EmployeExperience $employeExperience, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
 {
+    $this->checkToken($tokenStorage);
     $entityManager->remove($employeExperience);
     $entityManager->flush();
 
@@ -109,4 +119,14 @@ public function delete(EmployeExperience $employeExperience, EntityManagerInterf
             // Ajoutez d'autres attributs de l'entité que vous souhaitez inclure dans la réponse JSON
         ];
     }
+    public function checkToken(TokenStorageInterface $tokenStorage): void
+    {
+        // Récupérer le token d'authentification de Symfony
+        $token = $tokenStorage->getToken();
+
+        // Vérifier si le token d'authentification est présent et est de type TokenInterface
+        if (!$token instanceof TokenInterface) {
+            throw new AccessDeniedHttpException('Token d\'authentification manquant ou invalide');
+        }
+}
 }

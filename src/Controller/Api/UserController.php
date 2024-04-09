@@ -147,7 +147,7 @@ class UserController extends AbstractController
 
         // Envoyer un email de réinitialisation de mot de passe à l'utilisateur
         $email = (new Email())
-            ->from('anas.boushih@gmail.com')
+            ->from('souha.boushih@gmail.com')
             ->to($user->getEmail())
             ->subject('Réinitialisation de mot de passe')
             ->text('Pour réinitialiser votre mot de passe, cliquez sur ce lien : ' . $this->generateUrl('reset_password', ['token' => $resetToken], UrlGeneratorInterface::ABSOLUTE_URL));

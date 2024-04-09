@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20240404231903 extends AbstractMigration
+final class Version20240408134527 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -43,7 +43,7 @@ final class Version20240404231903 extends AbstractMigration
         $this->addSql('CREATE TABLE projet_preuve (id INT AUTO_INCREMENT NOT NULL, projet_id INT DEFAULT NULL, projet_preuve_libelle VARCHAR(255) NOT NULL, INDEX IDX_12449B6C18272 (projet_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql('CREATE TABLE situation_familiale (id INT AUTO_INCREMENT NOT NULL, situation_familiale VARCHAR(255) NOT NULL, PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql('CREATE TABLE upload_file (id INT AUTO_INCREMENT NOT NULL, projet_preuve_id INT DEFAULT NULL, fichier LONGBLOB NOT NULL, INDEX IDX_81BB169BA2A570E (projet_preuve_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
-        $this->addSql('CREATE TABLE `user` (id INT AUTO_INCREMENT NOT NULL, email VARCHAR(180) NOT NULL, username VARCHAR(180) NOT NULL, roles JSON NOT NULL, password VARCHAR(255) NOT NULL, UNIQUE INDEX UNIQ_8D93D649E7927C74 (email), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
+        $this->addSql('CREATE TABLE `user` (id INT AUTO_INCREMENT NOT NULL, email VARCHAR(180) NOT NULL, username VARCHAR(180) NOT NULL, roles JSON NOT NULL, password VARCHAR(255) NOT NULL, reset_token VARCHAR(255) DEFAULT NULL, UNIQUE INDEX UNIQ_8D93D649E7927C74 (email), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql('ALTER TABLE appel_offre ADD CONSTRAINT FK_BC56FD479815F3FC FOREIGN KEY (appel_offre_type_id) REFERENCES appel_offre_type (id)');
         $this->addSql('ALTER TABLE appel_offre ADD CONSTRAINT FK_BC56FD472985EF25 FOREIGN KEY (moyen_livraison_id) REFERENCES moyen_livraison (id)');
         $this->addSql('ALTER TABLE appel_offre ADD CONSTRAINT FK_BC56FD47E4993DCE FOREIGN KEY (organisme_demandeur_id) REFERENCES organisme_demandeur (id)');

@@ -9,12 +9,18 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Security\Core\Security;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 
 class AppelOffreTypeController extends AbstractController
 {
     #[Route('/api/create/appeloffre/types', name: 'api_appel_offre_type_create', methods: ['POST'])]
-    public function create(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    public function create(Request $request, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $data = json_decode($request->getContent(), true);
 
         $appelOffreType = new AppelOffreType();
@@ -27,8 +33,9 @@ class AppelOffreTypeController extends AbstractController
     }
 
     #[Route('/api/getAll/appeloffre/types', name: 'api_appel_offre_types', methods: ['GET'])]
-    public function index(EntityManagerInterface $entityManager): JsonResponse
+    public function index(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $appelOffreTypes = $entityManager->getRepository(AppelOffreType::class)->findAll();
         $data = [];
 
@@ -43,8 +50,9 @@ class AppelOffreTypeController extends AbstractController
     }
 
     #[Route('/api/get/appeloffre/types/{id}', name: 'api_appel_offre_type_show', methods: ['GET'])]
-    public function show(AppelOffreType $appelOffreType): JsonResponse
+    public function show(AppelOffreType $appelOffreType, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $data = [
             'appelOffreTypeId' => $appelOffreType->getId(),
             'appelOffreType' => $appelOffreType->getAppelOffreType(),
@@ -54,8 +62,10 @@ class AppelOffreTypeController extends AbstractController
     }
 
     #[Route('/api/put/appeloffre/types/{id}', name: 'api_appel_offre_type_update', methods: ['PUT'])]
-    public function update(Request $request, AppelOffreType $appelOffreType, EntityManagerInterface $entityManager): JsonResponse
+    public function update(Request $request, AppelOffreType $appelOffreType, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        
+        $this->checkToken($tokenStorage);
         $data = json_decode($request->getContent(), true);
 
         $appelOffreType->setAppelOffreType($data['appelOffreType']);
@@ -66,11 +76,22 @@ class AppelOffreTypeController extends AbstractController
     }
 
     #[Route('/api/delete/appeloffre/types/{id}', name: 'api_appel_offre_type_delete', methods: ['DELETE'])]
-    public function delete(AppelOffreType $appelOffreType, EntityManagerInterface $entityManager): JsonResponse
+    public function delete(AppelOffreType $appelOffreType, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $entityManager->remove($appelOffreType);
         $entityManager->flush();
 
         return new JsonResponse('Appel d\'offre type supprimé avec succès', Response::HTTP_OK);
     }
+    public function checkToken(TokenStorageInterface $tokenStorage): void
+    {
+        // Récupérer le token d'authentification de Symfony
+        $token = $tokenStorage->getToken();
+
+        // Vérifier si le token d'authentification est présent et est de type TokenInterface
+        if (!$token instanceof TokenInterface) {
+            throw new AccessDeniedHttpException('Token d\'authentification manquant ou invalide');
+        }
+}
 }

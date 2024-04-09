@@ -10,12 +10,19 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Security\Core\Security;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 
 class LieuController extends AbstractController
 {
+    
     #[Route('/api/create/lieu', name: 'api_lieu_create', methods: ['POST'])]
-    public function create(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    public function create(Request $request, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $requestData = json_decode($request->getContent(), true);
 
         // Créer une nouvelle instance de Lieu
@@ -41,8 +48,9 @@ class LieuController extends AbstractController
         return new JsonResponse(['message' => 'Lieu créé avec succès'], Response::HTTP_CREATED);
     }
     #[Route('/api/getAll/lieux', name: 'api_lieux_get_all', methods: ['GET'])]
-    public function getAll(EntityManagerInterface $entityManager): JsonResponse
+    public function getAll(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $lieuxRepository = $entityManager->getRepository(Lieu::class);
         $lieux = $lieuxRepository->findAll();
     
@@ -59,8 +67,9 @@ class LieuController extends AbstractController
         return new JsonResponse($lieuxData, Response::HTTP_OK);
     }
     #[Route('/api/get/lieux/{id}', name: 'api_lieu_show', methods: ['GET'])]
-    public function show(Lieu $lieu): JsonResponse
+    public function show(Lieu $lieu, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $data = [
             'lieuId' => $lieu->getId(),
             'lieuNom' => $lieu->getLieuNom(),
@@ -72,8 +81,9 @@ class LieuController extends AbstractController
     }
 
     #[Route('/api/put/lieu/{id}', name: 'api_lieu_update', methods: ['PUT'])]
-    public function update(Request $request, Lieu $lieu, EntityManagerInterface $entityManager): JsonResponse
+    public function update(Request $request, Lieu $lieu, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $requestData = json_decode($request->getContent(), true);
 
         $lieu->setLieuNom($requestData['lieuNom']);
@@ -95,11 +105,22 @@ class LieuController extends AbstractController
     }
 
     #[Route('/api/delete/lieux/{id}', name: 'api_lieu_delete', methods: ['DELETE'])]
-    public function delete(Lieu $lieu, EntityManagerInterface $entityManager): JsonResponse
+    public function delete(Lieu $lieu, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $entityManager->remove($lieu);
         $entityManager->flush();
 
         return new JsonResponse(['message' => 'Lieu supprimé avec succès'], Response::HTTP_OK);
     }
+    public function checkToken(TokenStorageInterface $tokenStorage): void
+    {
+        // Récupérer le token d'authentification de Symfony
+        $token = $tokenStorage->getToken();
+
+        // Vérifier si le token d'authentification est présent et est de type TokenInterface
+        if (!$token instanceof TokenInterface) {
+            throw new AccessDeniedHttpException('Token d\'authentification manquant ou invalide');
+        }
+}
 }

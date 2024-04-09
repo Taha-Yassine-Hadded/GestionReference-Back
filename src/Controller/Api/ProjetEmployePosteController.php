@@ -13,6 +13,11 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Security;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 
 class ProjetEmployePosteController extends AbstractController
 {
@@ -26,8 +31,9 @@ class ProjetEmployePosteController extends AbstractController
     }
     
     #[Route('/api/getAll/projet-employe-poste', name: 'api_projet_get', methods: ['GET'])]
-    public function index(): JsonResponse
+    public function index(TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $projetEmployePostes = $this->projetEmployePosteRepository->findAll();
         $serializedProjetEmployePostes = [];
         foreach ($projetEmployePostes as $projetEmployePoste) {
@@ -37,8 +43,9 @@ class ProjetEmployePosteController extends AbstractController
     }
 
     #[Route('/api/getOne/projet-employe-poste/{id}', name: 'api_projet_get_one', methods: ['GET'])]
-    public function getOne($id): JsonResponse
+    public function getOne($id, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $projetEmployePoste = $this->projetEmployePosteRepository->find($id);
         if (!$projetEmployePoste) {
             return new JsonResponse(['message' => 'Le ProjetEmployePoste spécifié n\'existe pas.'], JsonResponse::HTTP_NOT_FOUND);
@@ -48,8 +55,9 @@ class ProjetEmployePosteController extends AbstractController
     }
 
     #[Route('/api/create/projet-employe-poste', name: 'api_projet_create', methods: ['POST'])]
-    public function create(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    public function create(Request $request, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $data = json_decode($request->getContent(), true);
 
         $projetEmployePoste = new ProjetEmployePoste();
@@ -78,7 +86,7 @@ class ProjetEmployePosteController extends AbstractController
     /**
      * Serialize ProjetEmployePoste entity to array.
      */
-    private function serializeProjetEmployePoste(ProjetEmployePoste $projetEmployePoste): array
+    private function serializeProjetEmployePoste(ProjetEmployePoste $projetEmployePoste, TokenStorageInterface $tokenStorage): array
     {
         return [
             'id' => $projetEmployePoste->getId(),
@@ -93,8 +101,9 @@ class ProjetEmployePosteController extends AbstractController
 
 
     #[Route('/api/put/projet-employe-poste/{id}', name: 'api_projet_update', methods: ['PUT'])]
-    public function update(Request $request, $id): JsonResponse
+    public function update(Request $request, $id, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $data = json_decode($request->getContent(), true);
         $projetEmployePoste = $this->projetEmployePosteRepository->find($id);
 
@@ -112,8 +121,9 @@ class ProjetEmployePosteController extends AbstractController
         return new JsonResponse(['message' => 'Le ProjetEmployePoste a été mis à jour avec succès.'], JsonResponse::HTTP_OK);
     }
     #[Route('/api/delete/projet-employe-poste/{id}', name: 'api_projet_delete', methods: ['DELETE'])]
-    public function delete($id): JsonResponse
+    public function delete($id, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $projetEmployePoste = $this->projetEmployePosteRepository->find($id);
 
         if (!$projetEmployePoste) {
@@ -163,5 +173,16 @@ class ProjetEmployePosteController extends AbstractController
     }
     
     return $serializedEmployes;
+}
+public function checkToken(TokenStorageInterface $tokenStorage): void
+    {
+        // Récupérer le token d'authentification de Symfony
+        $token = $tokenStorage->getToken();
+
+        // Vérifier si le token d'authentification est présent et est de type TokenInterface
+        if (!$token instanceof TokenInterface) {
+            throw new AccessDeniedHttpException('Token d\'authentification manquant ou invalide');
+        }
+
 }
 }

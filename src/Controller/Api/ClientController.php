@@ -10,12 +10,18 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Security\Core\Security;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 
 class ClientController extends AbstractController
 {
     #[Route('/api/getAll/clients', name: 'api_client_index', methods: ['GET'])]
-    public function index(EntityManagerInterface $entityManager): JsonResponse
+    public function index(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $clients = $entityManager->getRepository(Client::class)->findAll();
         $data = [];
 
@@ -27,16 +33,18 @@ class ClientController extends AbstractController
     }
 
     #[Route('/api/get/client/{id}', name: 'api_client_show', methods: ['GET'])]
-    public function show(Client $client): JsonResponse
+    public function show(Client $client, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $data = $this->serializeClient($client);
 
         return new JsonResponse($data, Response::HTTP_OK);
     }
 
     #[Route('/api/create/clients', name: 'api_client_create', methods: ['POST'])]
-    public function create(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    public function create(Request $request, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $data = json_decode($request->getContent(), true);
 
         $client = new Client();
@@ -61,8 +69,9 @@ class ClientController extends AbstractController
         return new JsonResponse($responseData, Response::HTTP_CREATED);
     }
     #[Route('/api/update/client/{id}', name: 'api_client_update', methods: ['PUT'])]
-    public function update(Request $request, Client $client, EntityManagerInterface $entityManager): JsonResponse
+    public function update(Request $request, Client $client, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $data = json_decode($request->getContent(), true);
     
         // Mettre à jour les propriétés du client
@@ -87,8 +96,9 @@ class ClientController extends AbstractController
     }
     
     #[Route('/api/delete/client/{id}', name: 'api_client_delete', methods: ['DELETE'])]
-    public function delete(Client $client, EntityManagerInterface $entityManager): JsonResponse
+    public function delete(Client $client, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $entityManager->remove($client);
         $entityManager->flush();
 
@@ -111,4 +121,14 @@ class ClientController extends AbstractController
             // Ajoutez d'autres attributs de l'entité que vous souhaitez inclure dans la réponse JSON
         ];
     }
+    public function checkToken(TokenStorageInterface $tokenStorage): void
+    {
+        // Récupérer le token d'authentification de Symfony
+        $token = $tokenStorage->getToken();
+
+        // Vérifier si le token d'authentification est présent et est de type TokenInterface
+        if (!$token instanceof TokenInterface) {
+            throw new AccessDeniedHttpException('Token d\'authentification manquant ou invalide');
+        }
+}
 }

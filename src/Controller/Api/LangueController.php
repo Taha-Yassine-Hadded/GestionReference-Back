@@ -10,12 +10,18 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Security;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 
 class LangueController extends AbstractController
 {
     #[Route('/api/create/langue', name: 'api_langue_create', methods: ['POST'])]
-    public function create(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    public function create(Request $request, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $data = json_decode($request->getContent(), true);
 
         $langue = new Langue();
@@ -28,8 +34,9 @@ class LangueController extends AbstractController
     }
 
     #[Route('/api/get/langue/{id}', name: 'api_langue_get', methods: ['GET'])]
-    public function show(int $id, EntityManagerInterface $entityManager): JsonResponse
+    public function show(int $id, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $langue = $entityManager->getRepository(Langue::class)->find($id);
 
         if (!$langue) {
@@ -45,8 +52,9 @@ class LangueController extends AbstractController
     }
 
     #[Route('/api/put/langue/{id}', name: 'api_langue_update', methods: ['PUT'])]
-    public function update(int $id, Request $request, EntityManagerInterface $entityManager): JsonResponse
+    public function update(int $id, Request $request, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $langue = $entityManager->getRepository(Langue::class)->find($id);
 
         if (!$langue) {
@@ -62,8 +70,9 @@ class LangueController extends AbstractController
     }
 
     #[Route('/api/delete/langue/{id}', name: 'api_langue_delete', methods: ['DELETE'])]
-    public function delete(int $id, EntityManagerInterface $entityManager): JsonResponse
+    public function delete(int $id, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $langue = $entityManager->getRepository(Langue::class)->find($id);
 
         if (!$langue) {
@@ -77,8 +86,9 @@ class LangueController extends AbstractController
     }
 
     #[Route('/api/getAll/langues', name: 'api_langue_list', methods: ['GET'])]
-    public function list(EntityManagerInterface $entityManager): JsonResponse
+    public function list(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $langues = $entityManager->getRepository(Langue::class)->findAll();
 
         $data = [];
@@ -91,4 +101,14 @@ class LangueController extends AbstractController
 
         return new JsonResponse($data, Response::HTTP_OK);
     }
+    public function checkToken(TokenStorageInterface $tokenStorage): void
+    {
+        // Récupérer le token d'authentification de Symfony
+        $token = $tokenStorage->getToken();
+
+        // Vérifier si le token d'authentification est présent et est de type TokenInterface
+        if (!$token instanceof TokenInterface) {
+            throw new AccessDeniedHttpException('Token d\'authentification manquant ou invalide');
+        }
+}
 }

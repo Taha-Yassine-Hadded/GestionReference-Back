@@ -9,12 +9,18 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Security;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 
 class CategorieController extends AbstractController
 {
     #[Route('/api/create/categorie', name: 'api_categorie_create', methods: ['POST'])]
-    public function create(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    public function create(Request $request, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $data = json_decode($request->getContent(), true);
 
         $categorie = new Categorie();
@@ -27,8 +33,9 @@ class CategorieController extends AbstractController
     }
 
     #[Route('/api/getAll/categorie', name: 'api_categorie_get_all', methods: ['GET'])]
-    public function index(EntityManagerInterface $entityManager): JsonResponse
+    public function index(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $categories = $entityManager->getRepository(Categorie::class)->findAll();
         $data = [];
 
@@ -43,8 +50,9 @@ class CategorieController extends AbstractController
     }
 
     #[Route('/api/get/categorie/{id}', name: 'api_categorie_get', methods: ['GET'])]
-    public function show(Categorie $categorie): JsonResponse
+    public function show(Categorie $categorie, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $data = [
             'id_categorie' => $categorie->getId(),
             'categorie' => $categorie->getCategorie(),
@@ -54,8 +62,9 @@ class CategorieController extends AbstractController
     }
 
     #[Route('/api/put/categorie/{id}', name: 'api_categorie_update', methods: ['PUT'])]
-    public function update(Request $request, Categorie $categorie, EntityManagerInterface $entityManager): JsonResponse
+    public function update(Request $request, Categorie $categorie, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $data = json_decode($request->getContent(), true);
 
         $categorie->setCategorie($data['categorie']); // Assuming 'name' is the field for the category name
@@ -66,11 +75,22 @@ class CategorieController extends AbstractController
     }
 
     #[Route('/api/delete/categorie/{id}', name: 'api_categorie_delete', methods: ['DELETE'])]
-    public function delete(Categorie $categorie, EntityManagerInterface $entityManager): JsonResponse
+    public function delete(Categorie $categorie, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $entityManager->remove($categorie);
         $entityManager->flush();
 
         return new JsonResponse('Catégorie supprimée avec succès', Response::HTTP_OK);
     }
+    public function checkToken(TokenStorageInterface $tokenStorage): void
+    {
+        // Récupérer le token d'authentification de Symfony
+        $token = $tokenStorage->getToken();
+
+        // Vérifier si le token d'authentification est présent et est de type TokenInterface
+        if (!$token instanceof TokenInterface) {
+            throw new AccessDeniedHttpException('Token d\'authentification manquant ou invalide');
+        }
+}
 }

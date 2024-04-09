@@ -12,13 +12,19 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Security;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 
 
 class ProjetController extends AbstractController
 {
     #[Route('/api/create/projet', name: 'api_projet_create', methods: ['POST'])]
-    public function create(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    public function create(Request $request, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $data = json_decode($request->getContent(), true);
     
         $projet = new Projet();
@@ -60,8 +66,9 @@ class ProjetController extends AbstractController
     }
 
     #[Route('/api/getAll/projets', name: 'api_projet_get_all', methods: ['GET'])]
-    public function getAll(EntityManagerInterface $entityManager): JsonResponse
+    public function getAll(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $projets = $entityManager->getRepository(Projet::class)->findAll();
         $serializedProjets = [];
         foreach ($projets as $projet) {
@@ -71,8 +78,9 @@ class ProjetController extends AbstractController
     }
 
     #[Route('/api/get/projet/{id}', name: 'api_projet_get_one', methods: ['GET'])]
-    public function getOne($id, EntityManagerInterface $entityManager): JsonResponse
+    public function getOne($id, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $projet = $entityManager->getRepository(Projet::class)->find($id);
         if (!$projet) {
             return new JsonResponse(['message' => 'Projet non trouvé'], Response::HTTP_NOT_FOUND);
@@ -82,8 +90,9 @@ class ProjetController extends AbstractController
     }
 
     #[Route('/api/delete/projet/{id}', name: 'api_projet_delete', methods: ['DELETE'])]
-    public function delete($id, EntityManagerInterface $entityManager): JsonResponse
+    public function delete($id, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $projet = $entityManager->getRepository(Projet::class)->find($id);
         if (!$projet) {
             return new JsonResponse(['message' => 'Projet non trouvé'], Response::HTTP_NOT_FOUND);
@@ -131,5 +140,15 @@ class ProjetController extends AbstractController
         return $serializedCategories;
     }
 
-    // Add other methods if needed
+    public function checkToken(TokenStorageInterface $tokenStorage): void
+    {
+        // Récupérer le token d'authentification de Symfony
+        $token = $tokenStorage->getToken();
+
+        // Vérifier si le token d'authentification est présent et est de type TokenInterface
+        if (!$token instanceof TokenInterface) {
+            throw new AccessDeniedHttpException('Token d\'authentification manquant ou invalide');
+        }
+
+}
 }

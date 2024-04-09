@@ -11,6 +11,11 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Entity\Notification;
 use Doctrine\ORM\EntityManagerInterface;
 use DateTime;
+use Symfony\Component\Security\Core\Security;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 
 class NotificationController extends AbstractController
 {
@@ -22,8 +27,9 @@ class NotificationController extends AbstractController
     }
     
     #[Route('/api/notifications', name: 'api_notification', methods: ['GET'])]
-    public function checkAchèvementDate()
+    public function checkAchèvementDate( TokenStorageInterface $tokenStorage)
 {
+    $this->checkToken($tokenStorage);
     // Supprimer toutes les anciennes notifications
     $this->entityManager->getRepository(Notification::class)->createQueryBuilder('n')->delete()->getQuery()->execute();
 
@@ -64,8 +70,9 @@ class NotificationController extends AbstractController
     ]);
 }
 #[Route('/api/notifications/unread-count', name: 'api_notifications_unread_count', methods: ['GET'])]
-    public function getUnreadNotificationCount(NotificationRepository $notificationRepository): JsonResponse
+    public function getUnreadNotificationCount(NotificationRepository $notificationRepository, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         // Récupérer le nombre de notifications non lues
         $unreadNotificationCount = $notificationRepository->countUnreadNotifications();
 
@@ -73,8 +80,9 @@ class NotificationController extends AbstractController
         return new JsonResponse(['unread_notification_count' => $unreadNotificationCount]);
     }
     #[Route('/api/notifications/all', name: 'api_notifications_all', methods: ['GET'])]
-public function getNotifications(NotificationRepository $notificationRepository): JsonResponse
+public function getNotifications(NotificationRepository $notificationRepository, TokenStorageInterface $tokenStorage): JsonResponse
 {
+    $this->checkToken($tokenStorage);
     // Récupérer toutes les notifications avec les données de l'appel d'offre associées
     $notifications = $notificationRepository->findAllWithAppelOffre();
 
@@ -99,5 +107,15 @@ public function getNotifications(NotificationRepository $notificationRepository)
     // Retourner les notifications au format JSON
     return new JsonResponse($notificationsArray);
 }
+public function checkToken(TokenStorageInterface $tokenStorage): void
+    {
+        // Récupérer le token d'authentification de Symfony
+        $token = $tokenStorage->getToken();
 
+        // Vérifier si le token d'authentification est présent et est de type TokenInterface
+        if (!$token instanceof TokenInterface) {
+            throw new AccessDeniedHttpException('Token d\'authentification manquant ou invalide');
+        }
+
+}
 }

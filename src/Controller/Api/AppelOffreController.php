@@ -2,6 +2,7 @@
 
 namespace App\Controller\Api;
 
+use App\Controller\Api\UserController;
 use App\Entity\AppelOffre;
 use App\Entity\AppelOffreType;
 use App\Entity\MoyenLivraison;
@@ -21,9 +22,12 @@ use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 
 class AppelOffreController extends AbstractController
 {
+
+    
     #[Route('/api/create/appel-offres', name: 'api_appel_offres_create', methods: ['POST'])]
-    public function create(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    public function create(Request $request, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         // Récupérer les données JSON de la requête
         $data = json_decode($request->getContent(), true);
 
@@ -64,14 +68,8 @@ class AppelOffreController extends AbstractController
     #[Route('/api/get/appel-offres/{id}', name: 'api_appel_offres_get', methods: ['GET'])]
     public function getOne(int $id, AppelOffreRepository $appelOffreRepository, Request $request, TokenStorageInterface $tokenStorage): JsonResponse
     {
-        // Récupérer le token d'authentification de Symfony
-        $token = $tokenStorage->getToken();
-    
-        // Vérifier si le token d'authentification est présent et est de type TokenInterface
-        if (!$token instanceof TokenInterface) {
-            throw new AccessDeniedHttpException('Token d\'authentification manquant ou invalide');
-        }
-       
+        $this->checkToken($tokenStorage);
+
         $appelOffre = $appelOffreRepository->find($id);
     
         if (!$appelOffre) {
@@ -82,10 +80,11 @@ class AppelOffreController extends AbstractController
     
         return new JsonResponse($appelOffreArray);
     }
-    
+
     #[Route('/api/put/appel-offres/{id}', name: 'api_appel_offres_update', methods: ['PUT'])]
-    public function update(int $id, Request $request, EntityManagerInterface $entityManager, AppelOffreRepository $appelOffreRepository): JsonResponse
+    public function update(int $id, Request $request, EntityManagerInterface $entityManager, AppelOffreRepository $appelOffreRepository, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $data = json_decode($request->getContent(), true);
         $appelOffre = $appelOffreRepository->find($id);
     
@@ -122,8 +121,9 @@ class AppelOffreController extends AbstractController
     
 
     #[Route('/api/delete/appel-offres/{id}', name: 'api_appel_offres_delete', methods: ['DELETE'])]
-    public function delete(int $id, EntityManagerInterface $entityManager, AppelOffreRepository $appelOffreRepository): JsonResponse
+    public function delete(int $id, EntityManagerInterface $entityManager, AppelOffreRepository $appelOffreRepository, TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         $appelOffre = $appelOffreRepository->find($id);
 
         if (!$appelOffre) {
@@ -138,9 +138,11 @@ class AppelOffreController extends AbstractController
     }
 
     #[Route('/api/getAll/appelOffres', name: 'api_AppelOffre_index', methods: ['GET'])]
-    public function index(EntityManagerInterface $entityManager): JsonResponse
+    public function index(EntityManagerInterface $entityManager , TokenStorageInterface $tokenStorage): JsonResponse
     {
+        $this->checkToken($tokenStorage);
         // Retrieve all AppelOffre entities from the database
+       
         $appelOffres = $entityManager->getRepository(AppelOffre::class)->findAll();
         
         // Initialize an array to store serialized data
@@ -174,4 +176,14 @@ class AppelOffreController extends AbstractController
             // Ajoutez d'autres attributs de l'entité que vous souhaitez inclure dans la réponse JSON
         ];
     }
+    public function checkToken(TokenStorageInterface $tokenStorage): void
+    {
+        // Récupérer le token d'authentification de Symfony
+        $token = $tokenStorage->getToken();
+
+        // Vérifier si le token d'authentification est présent et est de type TokenInterface
+        if (!$token instanceof TokenInterface) {
+            throw new AccessDeniedHttpException('Token d\'authentification manquant ou invalide');
+        }
+}
 }
