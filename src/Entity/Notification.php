@@ -5,6 +5,8 @@ namespace App\Entity;
 use App\Repository\NotificationRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 
 #[ORM\Entity(repositoryClass: NotificationRepository::class)]
 class Notification
@@ -29,6 +31,15 @@ class Notification
     #[ORM\ManyToOne(targetEntity: AppelOffre::class)]
     #[Assert\NotBlank]
     private ?AppelOffre $appelOffre = null;
+
+
+    #[ORM\OneToMany(targetEntity: UserNotification::class, mappedBy: 'users',cascade: ["persist","remove"])]
+    private Collection $userNotifications ;
+
+    public function __construct()
+    {
+        $this->users = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -77,5 +88,33 @@ public function setRead(bool $read): self
     $this->read = $read;
     return $this;
 }
+/**
+     * @return Collection|UserNotification[]
+     */
+    public function getUserNotifications(): Collection
+    {
+        return $this->userNotifications;
+    }
 
+    public function addUserNotification(UserNotification $userNotification): self
+    {
+        if (!$this->userNotifications->contains($userNotification)) {
+            $this->userNotifications[] = $userNotification;
+            $userNotification->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUserNotification(UserNotification $userNotification): self
+    {
+        if ($this->userNotifications->removeElement($userNotification)) {
+            // set the owning side to null (unless already changed)
+            if ($userNotification->getUser() === $this) {
+                $userNotification->setUser(null);
+            }
+        }
+
+        return $this;
+    }
 }

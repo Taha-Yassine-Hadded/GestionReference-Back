@@ -9,24 +9,24 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\SerializerInterface;
 use App\Entity\User;
+use Symfony\Component\Security\Core\Security;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Exception\BadCredentialsException;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use App\Repository\UserRepository;
-use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Security\Core\Authorization\Voter\RoleVoter;
 use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
-use  Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\Security\Core\Exception\LogicException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-
-
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 class UserController extends AbstractController
 {
@@ -36,11 +36,13 @@ class UserController extends AbstractController
     private $passwordHasher;
     private $jwtManager;
     private $authorizationChecker;
+    private $security;
 
-    public function __construct(EntityManagerInterface $entityManager, SerializerInterface $serializer, UserRepository $userRepository, UserPasswordHasherInterface $passwordHasher, JWTTokenManagerInterface $jwtManager, AuthorizationCheckerInterface $authorizationChecker)
+    public function __construct(EntityManagerInterface $entityManager, SerializerInterface $serializer, Security $security, UserRepository $userRepository, UserPasswordHasherInterface $passwordHasher, JWTTokenManagerInterface $jwtManager, AuthorizationCheckerInterface $authorizationChecker)
     {
         $this->entityManager = $entityManager;
         $this->serializer = $serializer;
+        $this->security = $security;
         $this->userRepository = $userRepository;
         $this->passwordHasher = $passwordHasher;
         $this->jwtManager = $jwtManager;
@@ -78,50 +80,74 @@ class UserController extends AbstractController
     public function login(Request $request): Response
     {
         $data = json_decode($request->getContent(), true);
-
+    
         // Récupérer les identifiants de l'utilisateur
         $email = $data['email'];
         $password = $data['password'];
-
+    
         // Récupérer l'utilisateur depuis le repository
         $user = $this->userRepository->findOneBy(['email' => $email]);
-
+    
         // Vérifier si l'utilisateur existe
         if (!$user) {
             throw new BadCredentialsException('Invalid email or password');
         }
-
+    
         // Vérifier si le mot de passe est correct
         if (!$this->passwordHasher->isPasswordValid($user, $password)) {
             throw new BadCredentialsException('Invalid email or password');
         }
-
+    
         // Authentification réussie, générer le jeton JWT
         $token = $this->jwtManager->create($user);
-
-        // Retourner le jeton JWT dans la réponse
-        return new JsonResponse(['token' => $token]);
+    
+        // Retourner le jeton JWT et le nom d'utilisateur dans la réponse
+        return new JsonResponse(['token' => $token, 'username' => $user->getUsername()]);
     }
 
-    #[Route('/api/getUsers', name: 'get_users', methods: ['GET'])]
-    public function getUsers(Request $request, AuthorizationCheckerInterface $authorizationChecker): JsonResponse
+    #[Route('api/logout', name: 'logout', methods: ['POST'])]
+    public function logout(): JsonResponse
     {
+        // Clear the JWT token from the client-side cookie or local storage
+        $response = new JsonResponse(['message' => 'Logged out successfully']);
+        $response->headers->clearCookie('JWT'); // Change 'JWT' to the name of your JWT cookie, if applicable
 
-        // Mettez votre logique pour récupérer les utilisateurs ici
-        $users = $this->getDoctrine()->getRepository(User::class)->findAll();
+        return $response;
+    }
 
-        // Convertir les utilisateurs en un tableau associatif
-        $usersArray = [];
-        foreach ($users as $user) {
-            $usersArray[] = [
-                'id' => $user->getId(),
-                'email' => $user->getEmail(),
-                'roles' => $user->getRoles(),
-            ];
+    #[Route('api/changePassword', name: 'changePassword', methods: ['POST'])]
+    public function changePassword(Request $request, TokenStorageInterface $tokenStorage): JsonResponse
+    {
+   
+        $data = json_decode($request->getContent(), true);
+
+        // Assurez-vous que les données nécessaires sont présentes dans la requête
+        if (!isset($data['oldPassword']) || !isset($data['newPassword'])) {
+            return new JsonResponse(['error' => 'Les données de requête sont incomplètes'], 400);
         }
 
-        // Retourner la réponse JSON avec tous les utilisateurs
-        return new JsonResponse($usersArray);
+        // Récupérer l'utilisateur actuel
+        $user = $this->getUser();
+
+        // Récupérer l'ancien et le nouveau mot de passe du corps de la requête
+        $oldPassword = $data['oldPassword'];
+        $newPassword = $data['newPassword'];
+
+        // Vérifier si l'ancien mot de passe est correct
+        if (!$this->passwordHasher->isPasswordValid($user, $oldPassword)) {
+            return new JsonResponse(['error' => 'Le mot de passe actuel est incorrect'], 400);
+        }
+
+        // Encoder et mettre à jour le mot de passe de l'utilisateur
+        $hashedPassword = $this->passwordHasher->hashPassword($user, $newPassword);
+        $user->setPassword($hashedPassword);
+        // Ici, vous devriez avoir un mécanisme pour sauvegarder le mot de passe mis à jour, par exemple, dans un fichier ou une base de données
+
+        // Authentifier l'utilisateur avec le nouveau mot de passe
+        $this->entityManager->flush();
+
+        // Retourner le message de succès
+        return new JsonResponse(['message' => 'Mot de passe changé avec succès'], 200);
     }
 
     #[Route('/forgot-password', name: 'forgot_password', methods: ['POST'])]
@@ -147,7 +173,7 @@ class UserController extends AbstractController
 
         // Envoyer un email de réinitialisation de mot de passe à l'utilisateur
         $email = (new Email())
-            ->from('souha.boushih@gmail.com')
+            ->from('recover.password@xtensus.com')
             ->to($user->getEmail())
             ->subject('Réinitialisation de mot de passe')
             ->text('Pour réinitialiser votre mot de passe, cliquez sur ce lien : ' . $this->generateUrl('reset_password', ['token' => $resetToken], UrlGeneratorInterface::ABSOLUTE_URL));
@@ -157,4 +183,15 @@ class UserController extends AbstractController
         // Répondre avec un message de succès
         return new JsonResponse(['message' => 'Un email de réinitialisation de mot de passe a été envoyé à votre adresse email']);
     }
+    public function checkToken(TokenStorageInterface $tokenStorage): void
+    {
+        // Récupérer le token d'authentification de Symfony
+        $token = $tokenStorage->getToken();
+
+        // Vérifier si le token d'authentification est présent et est de type TokenInterface
+        if (!$token instanceof TokenInterface) {
+            throw new AccessDeniedHttpException('Token d\'authentification manquant ou invalide');
+        }
+
+}
 }
