@@ -3,6 +3,7 @@
 namespace App\Controller\Api;
 
 use App\Entity\Client;
+use App\Entity\Projet;
 use App\Entity\NatureClient;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -26,7 +27,7 @@ class ClientController extends AbstractController
         $data = [];
 
         foreach ($clients as $client) {
-            $data[] = $this->serializeClient($client);
+            $data[] = $this->serializeClientNom($client);
         }
 
         return new JsonResponse($data, Response::HTTP_OK);
@@ -96,15 +97,26 @@ class ClientController extends AbstractController
     }
     
     #[Route('/api/delete/client/{id}', name: 'api_client_delete', methods: ['DELETE'])]
-    public function delete(Client $client, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
+    public function deleteClient(Client $client, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
         $this->checkToken($tokenStorage);
+        
+        // Récupérer tous les projets qui ont ce client
+        $projets = $entityManager->getRepository(Projet::class)->findBy(['client' => $client]);
+
+        // Mettre à jour les références à null dans tous les projets liés
+        foreach ($projets as $projet) {
+            $projet->setClient(null);
+            $entityManager->persist($projet);
+        }
+        $entityManager->flush();
+
+        // Supprimer le client
         $entityManager->remove($client);
         $entityManager->flush();
 
         return new JsonResponse('Client supprimé avec succès', Response::HTTP_OK);
     }
-
     /**
      * Serialize Client entity to array.
      */
@@ -118,6 +130,22 @@ class ClientController extends AbstractController
             'clientTelephone' => $client->getClientTelephone(),
             'clientEmail' => $client->getClientEmail(),
             'natureClientId' => $client->getNatureClient() ? $client->getNatureClient()->getId() : null
+            // Ajoutez d'autres attributs de l'entité que vous souhaitez inclure dans la réponse JSON
+        ];
+    }
+     /**
+     * Serialize Client entity to array.
+     */
+    private function serializeClientNom(Client $client): array
+    {
+        return [
+            'clientId' => $client->getId(),
+            'personneContact' => $client->getPersonneContact(),
+            'clientRaisonSociale' => $client->getClientRaisonSociale(),
+            'clientAdresse' => $client->getClientAdresse(),
+            'clientTelephone' => $client->getClientTelephone(),
+            'clientEmail' => $client->getClientEmail(),
+            'natureClientId' => $client->getNatureClient() ? $client->getNatureClient()->getNatureClient() : null
             // Ajoutez d'autres attributs de l'entité que vous souhaitez inclure dans la réponse JSON
         ];
     }

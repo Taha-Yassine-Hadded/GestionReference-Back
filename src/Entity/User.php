@@ -29,7 +29,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private array $roles = [];
 
 
-    #[ORM\OneToMany(targetEntity: UserNotification::class, mappedBy: 'notification',cascade: ["persist","remove"])]
+    #[ORM\OneToMany(targetEntity: UserNotification::class, mappedBy: 'user',cascade: ["persist","remove"])]
     private Collection $userNotifications ;
 
 

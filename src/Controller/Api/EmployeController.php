@@ -93,7 +93,7 @@ public function create(Request $request, EntityManagerInterface $entityManager, 
         $employes = $entityManager->getRepository(Employe::class)->findAll();
         $serializedEmployes = [];
         foreach ($employes as $employe) {
-            $serializedEmployes[] = $this->serializeEmploye($employe);
+            $serializedEmployes[] = $this->serializeEmployeNom($employe);
         }
         return new JsonResponse($serializedEmployes, Response::HTTP_OK);
     }
@@ -117,9 +117,36 @@ public function create(Request $request, EntityManagerInterface $entityManager, 
         'employePrincipaleQualification' => $employe->getEmployePrincipaleQualification(),
         'employeFormation' => $employe->getEmployeFormation(),
         'employeAffiliationDesAssociationsGroupPro' => $employe->getEmployeAffiliationDesAssociationsGroupPro(),
-        'nationalite' => $employe->getNationalite() ? $employe->getNationalite()->getId() : null,
-        'situationFamiliale' => $employe->getSituationFamiliale() ? $employe->getSituationFamiliale()->getId() : null,
-        'poste' => $employe->getPoste() ? $employe->getPoste()->getId() : null,
+        'nationaliteId' => $employe->getNationalite() ? $employe->getNationalite()->getId() : null,
+        'situationFamilialeId' => $employe->getSituationFamiliale() ? $employe->getSituationFamiliale()->getId() : null,
+        'posteId' => $employe->getPoste() ? $employe->getPoste()->getId() : null,
+        'langues' => $langues, // Incluez les langues sérialisées ici
+        // Ajoutez d'autres attributs si nécessaire
+    ];
+}
+private function serializeEmployeNom(Employe $employe): array
+{
+    $langues = [];
+    foreach ($employe->getLangues() as $langue) {
+        // Ajoutez toutes les propriétés de la langue que vous souhaitez inclure
+        $langues[] = [
+            
+            'langueNom' => $langue->getLangueNom(), // Assurez-vous que c'est la bonne méthode pour récupérer le nom de la langue
+            // Ajoutez d'autres propriétés de langue si nécessaire
+        ];
+    }
+
+    return [
+        'id' => $employe->getId(),
+        'personneContact'=> $employe->getPersonneContact(),
+        'employeDateNaissance' => $employe->getEmployeDateNaissance()->format('Y-m-d'),
+        'employeAdresse' => $employe->getEmployeAdresse(),
+        'employePrincipaleQualification' => $employe->getEmployePrincipaleQualification(),
+        'employeFormation' => $employe->getEmployeFormation(),
+        'employeAffiliationDesAssociationsGroupPro' => $employe->getEmployeAffiliationDesAssociationsGroupPro(),
+        'nationalite' => $employe->getNationalite() ? $employe->getNationalite()->getNationaliteLibelle() : null,
+        'situationFamiliale' => $employe->getSituationFamiliale() ? $employe->getSituationFamiliale()->getSituationFamiliale() : null,
+        'poste' => $employe->getPoste() ? $employe->getPoste()->getPosteNom() : null,
         'langues' => $langues, // Incluez les langues sérialisées ici
         // Ajoutez d'autres attributs si nécessaire
     ];

@@ -26,7 +26,7 @@ class EmployeEducationController extends AbstractController
         $data = [];
 
         foreach ($employeEducations as $employeEducation) {
-            $data[] = $this->serializeEmployeEducation($employeEducation);
+            $data[] = $this->serializeEmployeEducationNom($employeEducation);
         }
 
         return new JsonResponse($data, Response::HTTP_OK);
@@ -113,6 +113,22 @@ class EmployeEducationController extends AbstractController
             'employeEducationDiplomes' => $employeEducation->getEmployeEducationDiplomes(),
             'employeEducationAnneeObtention' => $employeEducation->getEmployeEducationAnneeObtention()->format('Y-m-d'),
             'employeId' => $employeEducation->getEmploye()->getId(),
+            // Ajoutez d'autres attributs de l'entité que vous souhaitez inclure dans la réponse JSON
+        ];
+    }
+    
+    /**
+     * Serialize EmployeEducation entity to array.
+     */
+    private function serializeEmployeEducationNom(EmployeEducation $employeEducation): array
+    {
+        return [
+            'employeEducationId' => $employeEducation->getId(),
+            'employeEducationNatureEtudes' => $employeEducation->getEmployeEducationNatureEtudes(),
+            'employeEducationEtablissement' => $employeEducation->getEmployeEducationEtablissement(),
+            'employeEducationDiplomes' => $employeEducation->getEmployeEducationDiplomes(),
+            'employeEducationAnneeObtention' => $employeEducation->getEmployeEducationAnneeObtention()->format('Y-m-d'),
+            'employe' => $employeEducation->getEmploye()->getPersonneContact(),
             // Ajoutez d'autres attributs de l'entité que vous souhaitez inclure dans la réponse JSON
         ];
     }

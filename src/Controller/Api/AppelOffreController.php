@@ -150,7 +150,7 @@ class AppelOffreController extends AbstractController
     
         // Serialize each AppelOffre entity and add it to the array
         foreach ($appelOffres as $appelOffre) {
-            $data[] = $this->serializeAppelOffre($appelOffre);
+            $data[] = $this->serializeAppelOffreNom($appelOffre);
         }
     
         // Return the serialized data as a JSON response
@@ -173,6 +173,27 @@ class AppelOffreController extends AbstractController
             'appelOffreTypeId' => $appelOffre->getAppelOffreType() ? $appelOffre->getAppelOffreType()->getId() : null,
             'moyenLivraisonId' => $appelOffre->getMoyenLivraison() ? $appelOffre->getMoyenLivraison()->getId() : null,
             'organismeDemandeurId' => $appelOffre->getOrganismeDemandeur() ? $appelOffre->getOrganismeDemandeur()->getId() : null,
+            // Ajoutez d'autres attributs de l'entité que vous souhaitez inclure dans la réponse JSON
+        ];
+    }
+    
+    
+    /**
+     * Serialize AppelOffre entity to array.
+     */
+    private function serializeAppelOffreNom(AppelOffre $appelOffre): array
+    {
+        return [
+            'appelOffreId' => $appelOffre->getId(),
+            'appelOffreDevis' => $appelOffre->getAppelOffreDevis(),
+            'appelOffreObjet' => $appelOffre->getAppelOffreObjet(),
+            'appelOffreDateRemise' => $appelOffre->getAppelOffreDateRemise() ? $appelOffre->getAppelOffreDateRemise()->format('Y-m-d') : null,
+            'appelOffreRetire' => $appelOffre->getAppelOffreRetire(),
+            'appelOffreParticipation' => $appelOffre->getAppelOffreParticipation(),
+            'appelOffreEtat' => $appelOffre->getAppelOffreEtat(),
+            'appelOffreTypeLibelle' => $appelOffre->getAppelOffreType() ? $appelOffre->getAppelOffreType()->getAppelOffreType(): null,
+        'moyenLivraisonLibelle' => $appelOffre->getMoyenLivraison() ? $appelOffre->getMoyenLivraison()->getMoyenLivraison() : null,
+        'organismeDemandeurLibelle' => $appelOffre->getOrganismeDemandeur() ? $appelOffre->getOrganismeDemandeur()->getOrganismeDemandeurLibelle() : null,
             // Ajoutez d'autres attributs de l'entité que vous souhaitez inclure dans la réponse JSON
         ];
     }

@@ -79,10 +79,28 @@ class AppelOffreTypeController extends AbstractController
     public function delete(AppelOffreType $appelOffreType, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
         $this->checkToken($tokenStorage);
-        $entityManager->remove($appelOffreType);
-        $entityManager->flush();
-
-        return new JsonResponse('Appel d\'offre type supprimé avec succès', Response::HTTP_OK);
+        
+        // Vérifier s'il y a des AppelOffre associés
+        if ($appelOffreType->getAppelOffres()->isEmpty()) {
+            // Aucun AppelOffre associé, donc supprimer simplement l'AppelOffreType
+            $entityManager->remove($appelOffreType);
+            $entityManager->flush();
+            
+            return new JsonResponse('Appel d\'offre type supprimé avec succès', Response::HTTP_OK);
+        } else {
+            // Des AppelOffre sont associés, mettre à jour les références à null dans chaque AppelOffre
+            foreach ($appelOffreType->getAppelOffres() as $appelOffre) {
+                $appelOffre->setAppelOffreType(null);
+                $entityManager->persist($appelOffre);
+            }
+            $entityManager->flush();
+            
+            // Après avoir mis à jour les références, supprimer l'AppelOffreType
+            $entityManager->remove($appelOffreType);
+            $entityManager->flush();
+            
+            return new JsonResponse('Les références à l\'Appel d\'offre type ont été supprimées des Appels d\'offre associés, et l\'Appel d\'offre type a été supprimé avec succès.', Response::HTTP_OK);
+        }
     }
     public function checkToken(TokenStorageInterface $tokenStorage): void
     {

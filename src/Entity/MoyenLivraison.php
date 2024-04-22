@@ -20,8 +20,8 @@ class MoyenLivraison
     #[Assert\NotBlank]
     private ?string $moyenLivraison = null;
 
-    #[ORM\OneToMany(mappedBy: 'moyenLivraison', targetEntity: AppelOffre::class,cascade: ["persist","remove"])]
-    #[Assert\NotBlank]
+  
+    #[ORM\OneToMany(targetEntity: AppelOffre::class, mappedBy: 'moyenLivraison')]
     private Collection $appelOffres;
 
     public function __construct()

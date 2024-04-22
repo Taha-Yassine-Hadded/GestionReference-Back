@@ -9,3 +9,19 @@ reset_password:
     path: /api/reset-password/{token}
     controller: App\Controller\Api\ResetPasswordController::resetPassword
     methods: [POST]
+file_upload:
+    path: /api/upload
+    controller: App\Controller\Api\UploadFileController::upload
+    methods: [POST]
+api_create_projet:
+    path: /api/create/projet
+    controller: 'App\Controller\Api\ProjetController::create'
+    methods: ['POST']
+get_projet_details:
+    path: /api/get/projet/{id}
+    controller: App\Controller\Api\ProjetController::getProjetDetails
+    methods: GET
+update_projet:
+    path: /api/update/projet/{id}
+    controller: App\Controller\Api\ProjetController::update
+    methods: PUT

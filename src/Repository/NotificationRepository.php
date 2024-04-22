@@ -5,6 +5,8 @@ namespace App\Repository;
 use App\Entity\Notification;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use App\Entity\User;
+
 
 /**
  * @extends ServiceEntityRepository<Notification>
@@ -39,7 +41,23 @@ class NotificationRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
-
+ /**
+     * Retourne les notifications non lues pour un utilisateur donné.
+     *
+     * @param User $user L'utilisateur
+     * @return array Les notifications non lues
+     */
+    public function findUnreadNotificationsForUser(User $user): array
+    {
+        return $this->createQueryBuilder('n')
+            ->leftJoin('n.userNotifications', 'un')
+            ->andWhere('un.user = :user')
+            ->andWhere('un.isRead = :isRead')
+            ->setParameter('user', $user)
+            ->setParameter('isRead', false)
+            ->getQuery()
+            ->getResult();
+    }
 //    /**
 //     * @return Notification[] Returns an array of Notification objects
 //     */

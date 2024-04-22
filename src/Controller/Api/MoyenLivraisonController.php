@@ -78,10 +78,28 @@ class MoyenLivraisonController extends AbstractController
     public function delete(MoyenLivraison $moyenLivraison, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
         $this->checkToken($tokenStorage);
-        $entityManager->remove($moyenLivraison);
-        $entityManager->flush();
-
-        return new JsonResponse('Moyen de livraison supprimé avec succès', Response::HTTP_OK);
+        
+        // Vérifier s'il y a des AppelOffre associés à ce MoyenLivraison
+        if ($moyenLivraison->getAppelOffres()->isEmpty()) {
+            // Aucun AppelOffre associé, donc supprimer simplement le MoyenLivraison
+            $entityManager->remove($moyenLivraison);
+            $entityManager->flush();
+            
+            return new JsonResponse('Moyen de livraison supprimé avec succès', Response::HTTP_OK);
+        } else {
+            // Des AppelOffre sont associés, mettre à jour les références à null dans chaque AppelOffre
+            foreach ($moyenLivraison->getAppelOffres() as $appelOffre) {
+                $appelOffre->setMoyenLivraison(null);
+                $entityManager->persist($appelOffre);
+            }
+            $entityManager->flush();
+            
+            // Après avoir mis à jour les références, supprimer le MoyenLivraison
+            $entityManager->remove($moyenLivraison);
+            $entityManager->flush();
+            
+            return new JsonResponse('Les références au Moyen de livraison ont été supprimées des Appels d\'offre associés, et le Moyen de livraison a été supprimé avec succès.', Response::HTTP_OK);
+        }
     }
 
 public function checkToken(TokenStorageInterface $tokenStorage): void

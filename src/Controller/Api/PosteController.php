@@ -70,21 +70,32 @@ class PosteController extends AbstractController
     }
 
     #[Route('/api/postes/{id}', name: 'api_poste_delete', methods: ['DELETE'])]
-    public function delete(int $id, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
+    public function deletePoste(int $id, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
         $this->checkToken($tokenStorage);
+        
         $poste = $entityManager->getRepository(Poste::class)->find($id);
 
         if (!$poste) {
             return new JsonResponse(['message' => 'Poste non trouvé'], Response::HTTP_NOT_FOUND);
         }
 
+        // Récupérer tous les employés qui ont ce poste
+        $employes = $entityManager->getRepository(Employe::class)->findBy(['poste' => $poste]);
+
+        // Mettre à jour les références à null dans tous les employés liés
+        foreach ($employes as $employe) {
+            $employe->setPoste(null); // Mettez à jour la référence appropriée à null
+            $entityManager->persist($employe);
+        }
+        $entityManager->flush();
+
+        // Supprimer le poste
         $entityManager->remove($poste);
         $entityManager->flush();
 
         return new JsonResponse('Poste supprimé avec succès', Response::HTTP_OK);
     }
-
     #[Route('/api/postes', name: 'api_poste_list', methods: ['GET'])]
     public function list(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {

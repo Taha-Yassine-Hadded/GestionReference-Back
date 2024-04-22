@@ -15,26 +15,26 @@ class Projet
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank]
     private ?string $projetLibelle = null;
 
-    #[ORM\Column(type: Types::TEXT)]
-    #[Assert\NotBlank]
-    private ?string $projetDescirption = null;
+    #[ORM\Column(type: 'text')]
+ #[Assert\NotBlank]
+   private ?string $projetDescription = null;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank]
     private ?string $projetReference = null;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[ORM\Column(type: 'date')]
     #[Assert\NotBlank]
     private ?\DateTimeInterface $projetDateDemarrage = null;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[ORM\Column(type: 'date')]
     #[Assert\NotBlank]
     private ?\DateTimeInterface $projetDateAchevement = null;
 
@@ -42,29 +42,25 @@ class Projet
     #[Assert\NotBlank]
     private ?string $projetUrlFonctionnel = null;
 
-    #[ORM\Column(type: Types::TEXT)]
+  #[ORM\Column(type: 'text')]
     #[Assert\NotBlank]
-    private ?string $ProjetDescriptionServiceEffectivementRendus = null;
+    private ?string $projetDescriptionServiceEffectivementRendus = null;
 
     #[ORM\ManyToOne(targetEntity: Lieu::class)]
-    #[Assert\NotBlank]
     private ?Lieu $lieu;
 
-    #[ORM\ManyToOne(targetEntity: Client::class)]
-    #[Assert\NotBlank]
+    #[ORM\ManyToOne(targetEntity: Client::class, cascade: ["persist","remove"])]
     private ?Client $client; 
 
-    #[ORM\OneToMany(targetEntity: ProjetEmployePoste::class, mappedBy: 'employe',cascade: ["persist","remove"])]
-    private Collection $projetsEmployePostes ;
+    #[ORM\OneToMany(targetEntity: ProjetEmployePoste::class, mappedBy: 'projet', cascade: ["persist","remove"])]
+    private Collection $projetsEmployePostes;
 
-    #[ORM\OneToMany(targetEntity: ProjetPreuve::class, mappedBy: "projet",cascade: ["persist","remove"])]
+    #[ORM\OneToMany(targetEntity: ProjetPreuve::class, mappedBy: "projet", cascade: ["persist","remove"])]
     private Collection $projetPreuves;
-  
 
-    #[ORM\ManyToMany(targetEntity: Categorie::class, inversedBy: 'projets',cascade: ["persist","remove"])]
+    #[ORM\ManyToMany(targetEntity: Categorie::class, inversedBy: 'projets', cascade: ["persist","remove"])]
     #[Assert\NotBlank]
     private $categories;
-
 
     public function __construct()
     {
@@ -102,18 +98,19 @@ class Projet
         return $this;
     }
 
+
     public function getProjetDescirption(): ?string
     {
-        return $this->projetDescirption;
+        return $this->projetDescription;
     }
-
-    public function setProjetDescirption(string $projetDescirption): static
+    
+    public function setProjetDescription(?string $projetDescription): self
     {
-        $this->projetDescirption = $projetDescirption;
-
+        $this->projetDescription = $projetDescription;
+    
         return $this;
     }
-
+    
     public function getProjetReference(): ?string
     {
         return $this->projetReference;
@@ -164,15 +161,48 @@ class Projet
 
     public function getProjetDescriptionServiceEffectivementRendus(): ?string
     {
-        return $this->ProjetDescriptionServiceEffectivementRendus;
+        return $this->projetDescriptionServiceEffectivementRendus;
     }
+    
 
-    public function setProjetDescriptionServiceEffectivementRendus(string $ProjetDescriptionServiceEffectivementRendus): static
+    public function setProjetDescriptionServiceEffectivementRendus(string $projetDescriptionServiceEffectivementRendus): static
     {
-        $this->ProjetDescriptionServiceEffectivementRendus = $ProjetDescriptionServiceEffectivementRendus;
+        $this->projetDescriptionServiceEffectivementRendus = $projetDescriptionServiceEffectivementRendus;
 
         return $this;
     }
+
+    // Méthode pour obtenir les projetsEmployePostes
+    public function getProjetsEmployePostes(): Collection
+    {
+        return $this->projetsEmployePostes;
+    }
+
+    // Méthode pour ajouter un projetEmployePoste à la collection
+    public function addProjetEmployePoste(ProjetEmployePoste $projetEmployePoste): self
+    {
+        if (!$this->projetsEmployePostes->contains($projetEmployePoste)) {
+            $this->projetsEmployePostes[] = $projetEmployePoste;
+            $projetEmployePoste->setProjet($this); // Assurez-vous que le projet est défini pour le projetEmployePoste ajouté
+        }
+
+        return $this;
+    }
+
+    // Méthode pour retirer un projetEmployePoste de la collection
+    public function removeProjetEmployePoste(ProjetEmployePoste $projetEmployePoste): self
+    {
+        if ($this->projetsEmployePostes->contains($projetEmployePoste)) {
+            $this->projetsEmployePostes->removeElement($projetEmployePoste);
+            // Mise à jour de la relation de ProjetEmployePoste avec le projet à NULL lorsqu'il est retiré
+            if ($projetEmployePoste->getProjet() === $this) {
+                $projetEmployePoste->setProjet(null);
+            }
+        }
+
+        return $this;
+    }
+
     public function getLieu(): ?Lieu
     {
         return $this->lieu;
@@ -268,33 +298,4 @@ class Projet
     }
 
 
-        public function getProjetsEmployePostes(): Collection
-    {
-        return $this->projetsEmployePostes;
-    }
-
-    // Méthode pour ajouter un ProjetEmployePoste à la collection
-    public function addProjetEmployePoste(ProjetEmployePoste $projetEmployePoste): self
-    {
-        if (!$this->projetsEmployePostes->contains($projetEmployePoste)) {
-            $this->projetsEmployePostes[] = $projetEmployePoste;
-            $projetEmployePoste->setProjet($this); // Assurez-vous que le projet est défini pour le projetEmployePoste ajouté
-        }
-
-        return $this;
-    }
-
-    // Méthode pour retirer un ProjetEmployePoste de la collection
-    public function removeProjetEmployePoste(ProjetEmployePoste $projetEmployePoste): self
-    {
-        if ($this->projetsEmployePostes->contains($projetEmployePoste)) {
-            $this->projetsEmployePostes->removeElement($projetEmployePoste);
-            // Mise à jour de la relation de ProjetEmployePoste avec le projet à NULL lorsqu'il est retiré
-            if ($projetEmployePoste->getProjet() === $this) {
-                $projetEmployePoste->setProjet(null);
-            }
-        }
-
-        return $this;
-    }
 }

@@ -10,22 +10,22 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: ProjetEmployePosteRepository::class)]
 class ProjetEmployePoste
 {
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
-
-    #[ORM\Column(length: 255)]
-    private ?string $duree = null;
-
-    #[ORM\ManyToOne(targetEntity: Employe::class, inversedBy: 'projetsEmployePostes')]
-    private Employe $employe;
-
-    #[ORM\ManyToOne(targetEntity: Projet::class, inversedBy: 'projetsEmployePostes')]
-    private Projet $projet;
-
-    #[ORM\ManyToOne(targetEntity: Poste::class, inversedBy: 'projetsEmployePostes')]
-    private Poste $poste;
+        #[ORM\Id]
+        #[ORM\GeneratedValue]
+        #[ORM\Column]
+        private ?int $id = null;
+    
+        #[ORM\Column(length: 255)]
+        private ?string $duree = null;
+    
+        #[ORM\ManyToOne(targetEntity: Employe::class, inversedBy: 'projetsEmployePostes')]
+        private ?Employe $employe = null;
+    
+        #[ORM\ManyToOne(targetEntity: Projet::class, inversedBy: 'projetsEmployePostes')]
+        private ?Projet $projet = null;
+    
+        #[ORM\ManyToOne(targetEntity: Poste::class, inversedBy: 'projetsEmployePostes')]
+        private ?Poste $poste = null;
 
     public function __toString()
     {

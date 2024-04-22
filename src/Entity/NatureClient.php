@@ -21,7 +21,7 @@ class NatureClient
     #[Assert\NotBlank]
     private ?string  $natureClient;
 
-    #[ORM\OneToMany(targetEntity: Client::class, mappedBy: "natureClient",cascade: ["persist","remove"])]
+    #[ORM\OneToMany(targetEntity: Client::class, mappedBy: "natureClient")]
     private $clients;
 
     public function __construct()

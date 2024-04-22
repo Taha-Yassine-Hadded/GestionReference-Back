@@ -4,6 +4,7 @@ namespace App\Controller\Api;
 
 use App\Entity\Lieu;
 use App\Entity\Pays;
+use App\Entity\Projet;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -56,13 +57,19 @@ class LieuController extends AbstractController
     
         $lieuxData = [];
         foreach ($lieux as $lieu) {
+            $pays = $lieu->getPays();
+            $paysId = ($pays) ? $pays->getId() : null;
+            $paysNom = ($pays) ? $pays->getPaysNom() : 'Pays non spécifié';
+        
             $lieuxData[] = [
                 'lieuId' => $lieu->getId(),
                 'lieuNom' => $lieu->getLieuNom(),
-                'paysId' => $lieu->getPays()->getId(),
-                  
+                'paysId' => $paysId,
+                'paysNom' => $paysNom,
+                'message' => ($pays === null) ? 'Pays non spécifié' : null,
             ];
         }
+        
     
         return new JsonResponse($lieuxData, Response::HTTP_OK);
     }
@@ -105,9 +112,21 @@ class LieuController extends AbstractController
     }
 
     #[Route('/api/delete/lieux/{id}', name: 'api_lieu_delete', methods: ['DELETE'])]
-    public function delete(Lieu $lieu, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
+    public function deleteLieu(Lieu $lieu, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
         $this->checkToken($tokenStorage);
+        
+        // Récupérer tous les projets qui ont ce lieu
+        $projets = $entityManager->getRepository(Projet::class)->findBy(['lieu' => $lieu]);
+
+        // Mettre à jour les références à null dans tous les projets liés
+        foreach ($projets as $projet) {
+            $projet->setLieu(null);
+            $entityManager->persist($projet);
+        }
+        $entityManager->flush();
+
+        // Supprimer le lieu
         $entityManager->remove($lieu);
         $entityManager->flush();
 

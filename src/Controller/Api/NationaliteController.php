@@ -3,6 +3,7 @@
 namespace App\Controller\Api;
 
 use App\Entity\Nationalite;
+use App\Entity\Employe;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -80,10 +81,23 @@ class NationaliteController extends AbstractController
     public function delete(Nationalite $nationalite, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
         $this->checkToken($tokenStorage);
+        
+        // Récupérer tous les employés liés à cette nationalité
+        $employes = $entityManager->getRepository(Employe::class)->findBy(['nationalite' => $nationalite]);
+
+        // Mettre à jour les références à null dans tous les employés liés
+        foreach ($employes as $employe) {
+            $employe->setNationalite(null);
+            $entityManager->persist($employe);
+        }
+        $entityManager->flush();
+        
+        // Supprimer la nationalité
         $entityManager->remove($nationalite);
         $entityManager->flush();
 
         return new JsonResponse('Nationalité supprimée avec succès', Response::HTTP_OK);
+    
     }
     public function checkToken(TokenStorageInterface $tokenStorage): void
     {

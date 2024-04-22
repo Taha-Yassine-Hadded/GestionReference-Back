@@ -28,13 +28,12 @@ class Notification
     private bool $isread = false;
 
 
-    #[ORM\ManyToOne(targetEntity: AppelOffre::class)]
-    #[Assert\NotBlank]
+    #[ORM\ManyToOne(targetEntity: AppelOffre::class, cascade: ["persist","remove"])]
     private ?AppelOffre $appelOffre = null;
 
-
-    #[ORM\OneToMany(targetEntity: UserNotification::class, mappedBy: 'users',cascade: ["persist","remove"])]
-    private Collection $userNotifications ;
+    #[ORM\OneToMany(targetEntity: UserNotification::class, mappedBy: 'notification', cascade: ["persist","remove"])]
+    private Collection $userNotifications;
+    
 
     public function __construct()
     {

@@ -9,6 +9,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\SerializerInterface;
 use App\Entity\User;
+use App\Entity\Notification;
+use App\Entity\UserNotification;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -26,6 +28,8 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use App\Repository\UserNotificationRepository;
+use App\Repository\NotificationRepository;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 class UserController extends AbstractController
@@ -38,11 +42,16 @@ class UserController extends AbstractController
     private $authorizationChecker;
     private $security;
 
-    public function __construct(EntityManagerInterface $entityManager, SerializerInterface $serializer, Security $security, UserRepository $userRepository, UserPasswordHasherInterface $passwordHasher, JWTTokenManagerInterface $jwtManager, AuthorizationCheckerInterface $authorizationChecker)
+    private $notificationRepository;
+    
+
+    public function __construct(EntityManagerInterface $entityManager,  NotificationRepository $notificationRepository,UserNotificationRepository $userNotificationRepository,SerializerInterface $serializer, Security $security, UserRepository $userRepository, UserPasswordHasherInterface $passwordHasher, JWTTokenManagerInterface $jwtManager, AuthorizationCheckerInterface $authorizationChecker)
     {
         $this->entityManager = $entityManager;
         $this->serializer = $serializer;
         $this->security = $security;
+        $this->notificationRepository = $notificationRepository;
+        $this->userNotificationRepository = $userNotificationRepository;
         $this->userRepository = $userRepository;
         $this->passwordHasher = $passwordHasher;
         $this->jwtManager = $jwtManager;
@@ -100,7 +109,9 @@ class UserController extends AbstractController
     
         // Authentification réussie, générer le jeton JWT
         $token = $this->jwtManager->create($user);
-    
+
+ 
+
         // Retourner le jeton JWT et le nom d'utilisateur dans la réponse
         return new JsonResponse(['token' => $token, 'username' => $user->getUsername()]);
     }
@@ -183,7 +194,8 @@ class UserController extends AbstractController
         // Répondre avec un message de succès
         return new JsonResponse(['message' => 'Un email de réinitialisation de mot de passe a été envoyé à votre adresse email']);
     }
-    public function checkToken(TokenStorageInterface $tokenStorage): void
+
+public function checkToken(TokenStorageInterface $tokenStorage): void
     {
         // Récupérer le token d'authentification de Symfony
         $token = $tokenStorage->getToken();

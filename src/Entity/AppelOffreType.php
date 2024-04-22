@@ -20,9 +20,9 @@ class AppelOffreType
     #[Assert\NotBlank]
     private ?string $appelOffreType;
 
-    #[ORM\OneToMany(mappedBy: 'appelOffreType', targetEntity: AppelOffre::class,cascade: ["persist","remove"])]
-    #[Assert\NotBlank]
+    #[ORM\OneToMany(targetEntity: AppelOffre::class, mappedBy: 'appelOffreType')]
     private Collection $appelOffres;
+
 
     public function __construct()
     {

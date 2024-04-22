@@ -26,7 +26,7 @@ class ProjetPreuveController extends AbstractController
         $data = [];
 
         foreach ($projetPreuves as $projetPreuve) {
-            $data[] = $this->serializeProjetPreuve($projetPreuve);
+            $data[] = $this->serializeProjetPreuveNom($projetPreuve);
         }
 
         return new JsonResponse($data, Response::HTTP_OK);
@@ -94,6 +94,19 @@ class ProjetPreuveController extends AbstractController
     }
 
     /**
+     * Serialize ProjetPreuve entity to array.
+     */
+    private function serializeProjetPreuveNom(ProjetPreuve $projetPreuve): array
+    {
+        return [
+            'projetPreuveId' => $projetPreuve->getId(),
+            'projetPreuveLibelle' => $projetPreuve->getProjetPreuveLibelle(),
+            'projetId' => $projetPreuve->getProjet() ? $projetPreuve->getProjet()->getProjetLibelle() : null,
+                // Ajoutez d'autres attributs du projet que vous souhaitez inclure
+        
+        ];
+    }
+     /**
      * Serialize ProjetPreuve entity to array.
      */
     private function serializeProjetPreuve(ProjetPreuve $projetPreuve): array

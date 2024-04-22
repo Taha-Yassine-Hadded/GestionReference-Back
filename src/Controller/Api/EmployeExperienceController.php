@@ -27,25 +27,20 @@ class EmployeExperienceController extends AbstractController
 
         $data = [];
         foreach ($experiences as $experience) {
-            $data[] = $this->serializeEmployeExperience($experience);
+            $data[] = $this->serializeEmployeExperienceNom($experience);
         }
 
         return new JsonResponse($data, Response::HTTP_OK);
     }
 
+  
     #[Route('/api/employe-experiences/{id}', name: 'api_employe_experience_get', methods: ['GET'])]
-    public function show(int $id, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
+    public function show(EmployeExperience $employeExperience, TokenStorageInterface $tokenStorage): JsonResponse
     {
         $this->checkToken($tokenStorage);
-        $employeExperience = $entityManager->getRepository(EmployeExperience::class)->find($id);
-    
-        if (!$employeExperience) {
-            return new JsonResponse(['message' => 'Expérience employé introuvable'], Response::HTTP_NOT_FOUND);
-        }
-    
-        return new JsonResponse($employeExperience);
+        return new JsonResponse($this->serializeEmployeExperience($employeExperience), Response::HTTP_OK);
     }
-    
+
 
     #[Route('/api/create/employe-experiences', name: 'api_employe_experience_create', methods: ['POST'])]
 public function create(Request $request, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
@@ -105,7 +100,7 @@ public function delete(EmployeExperience $employeExperience, EntityManagerInterf
     return new JsonResponse('Formation employé supprimée avec succès', Response::HTTP_OK);
 }
     /**
-     * Serialize EmployeEducation entity to array.
+     * Serialize EmployeExperience entity to array.
      */
     private function serializeEmployeExperience(EmployeExperience $employeExperience): array
     {
@@ -116,6 +111,21 @@ public function delete(EmployeExperience $employeExperience, EntityManagerInterf
             'employeExperiencePeriode' => $employeExperience->getEmployeExperiencePeriode(),
             'employeExperienceFonctionOccupe' => $employeExperience->getEmployeExperienceFonctionOccupe(),
             'employeId' => $employeExperience->getEmploye()->getId(),
+            // Ajoutez d'autres attributs de l'entité que vous souhaitez inclure dans la réponse JSON
+        ];
+    }
+    /**
+     * Serialize EmployeExperience entity to array.
+     */
+    private function serializeEmployeExperienceNom(EmployeExperience $employeExperience): array
+    {
+        return [
+            'employeExperienceId' => $employeExperience->getId(),
+            'employeExperiencePoste' => $employeExperience->getEmployeExperiencePoste(),
+            'employeExperienceOragnismeEmployeur' => $employeExperience->getEmployeExperienceOragnismeEmployeur(),
+            'employeExperiencePeriode' => $employeExperience->getEmployeExperiencePeriode(),
+            'employeExperienceFonctionOccupe' => $employeExperience->getEmployeExperienceFonctionOccupe(),
+            'employe' => $employeExperience->getEmploye()->getPersonneContact(),
             // Ajoutez d'autres attributs de l'entité que vous souhaitez inclure dans la réponse JSON
         ];
     }

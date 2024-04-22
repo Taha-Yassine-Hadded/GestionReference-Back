@@ -42,14 +42,27 @@ class AppelOffre
     #[Assert\NotBlank]
     private ?int $appelOffreEtat;
 
-    #[ORM\ManyToOne(targetEntity: AppelOffreType::class, inversedBy: 'appelOffres')]
+    #[ORM\ManyToOne(targetEntity: AppelOffreType::class)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?AppelOffreType $appelOffreType;
     
-    #[ORM\ManyToOne(targetEntity: MoyenLivraison::class, inversedBy: 'appelOffres')]
-    private ?MoyenLivraison $moyenLivraison= null;
     
-    #[ORM\ManyToOne(targetEntity: OrganismeDemandeur::class, inversedBy: 'appelOffres')]
-    private OrganismeDemandeur $organismeDemandeur;
+    #[ORM\ManyToOne(targetEntity: MoyenLivraison::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?MoyenLivraison $moyenLivraison;
+    
+    #[ORM\ManyToOne(targetEntity: OrganismeDemandeur::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?OrganismeDemandeur $organismeDemandeur;
+
+    #[ORM\OneToMany(targetEntity: Notification::class, mappedBy: 'appelOffre', cascade: ["persist","remove"])]
+    private Collection $notifications;
+
+    public function __construct()
+    {
+        $this->notifications = new ArrayCollection();
+    }
+
 
     public function __toString()
     {
@@ -167,5 +180,45 @@ class AppelOffre
 
         return $this;
     }
-    
+      /**
+     * @return Collection|UserNotification[]
+     */
+    public function getUserNotifications(): Collection
+    {
+        return $this->userNotifications;
+    }
+
+    public function addUserNotification(UserNotification $userNotification): self
+    {
+        if (!$this->userNotifications->contains($userNotification)) {
+            $this->userNotifications[] = $userNotification;
+            $userNotification->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUserNotification(UserNotification $userNotification): self
+    {
+        if ($this->userNotifications->removeElement($userNotification)) {
+            // set the owning side to null (unless already changed)
+            if ($userNotification->getUser() === $this) {
+                $userNotification->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+     /**
+     * @ORM\PreRemove
+     */
+    public function preRemove(LifecycleEventArgs $eventArgs)
+    {
+        // Manually set the foreign key column to null in related child records
+        $this->appelOffreType = null;
+
+        // Optionally, flush changes to ensure they are persisted
+        $em = $eventArgs->getEntityManager();
+        $em->flush();
+    }
 }

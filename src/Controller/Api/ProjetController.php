@@ -18,7 +18,6 @@ use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 
-
 class ProjetController extends AbstractController
 {
     #[Route('/api/create/projet', name: 'api_projet_create', methods: ['POST'])]
@@ -29,12 +28,12 @@ class ProjetController extends AbstractController
     
         $projet = new Projet();
         $projet->setProjetLibelle($data['projetLibelle']);
-        $projet->setProjetDescirption($data['projetDescirption']);
+        $projet->setProjetDescription($data['projetDescription']);
         $projet->setProjetReference($data['projetReference']);
         $projet->setProjetDateDemarrage(new \DateTime($data['projetDateDemarrage']));
         $projet->setProjetDateAchevement(new \DateTime($data['projetDateAchevement']));
         $projet->setProjetUrlFonctionnel($data['projetUrlFonctionnel']);
-        $projet->setProjetDescriptionServiceEffectivementRendus($data['ProjetDescriptionServiceEffectivementRendus']);
+      $projet->setProjetDescriptionServiceEffectivementRendus($data['projetDescriptionServiceEffectivementRendus']);
     
         // Récupérer le lieu associé
         $lieu = $entityManager->getRepository(Lieu::class)->find($data['lieu_id']);
@@ -78,7 +77,7 @@ class ProjetController extends AbstractController
     }
 
     #[Route('/api/get/projet/{id}', name: 'api_projet_get_one', methods: ['GET'])]
-    public function getOne($id, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
+    public function getProjetDetails($id, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
         $this->checkToken($tokenStorage);
         $projet = $entityManager->getRepository(Projet::class)->find($id);
@@ -112,12 +111,12 @@ class ProjetController extends AbstractController
         return [
             'id' => $projet->getId(),
             'projetLibelle' => $projet->getProjetLibelle(),
-            'projetDescirption' => $projet->getProjetDescirption(),
+       'projetDescirption' => $projet->getProjetDescirption(),
             'projetReference' => $projet->getProjetReference(),
             'projetDateDemarrage' => $projet->getProjetDateDemarrage()->format('Y-m-d'),
             'projetDateAchevement' => $projet->getProjetDateAchevement()->format('Y-m-d'),
             'projetUrlFonctionnel' => $projet->getProjetUrlFonctionnel(),
-            'ProjetDescriptionServiceEffectivementRendus' => $projet->getProjetDescriptionServiceEffectivementRendus(),
+          'projetDescriptionServiceEffectivementRendus' => $projet->getProjetDescriptionServiceEffectivementRendus(),
             'clientId' =>  $projet->getClient() ?  $projet->getClient()->getId() : null,
             'lieuId' =>  $projet->getLieu() ?  $projet->getLieu()->getId() : null,
             'categories' => $categories,
@@ -139,7 +138,77 @@ class ProjetController extends AbstractController
         }
         return $serializedCategories;
     }
-
+    #[Route('/api/update/projet/{id}', name: 'api_projet_update', methods: ['PUT'])]
+    public function update($id, Request $request, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
+    {
+        $this->checkToken($tokenStorage);
+    
+        // Récupérer le projet à mettre à jour
+        $projet = $entityManager->getRepository(Projet::class)->find($id);
+        if (!$projet) {
+            return new JsonResponse(['message' => 'Projet non trouvé'], Response::HTTP_NOT_FOUND);
+        }
+    
+        // Récupérer les données de la requête
+        $data = json_decode($request->getContent(), true);
+    
+        // Mettre à jour les champs du projet
+        if (isset($data['projetLibelle'])) {
+            $projet->setProjetLibelle($data['projetLibelle']);
+        }
+        if (isset($data['projetDescription'])) {
+            $projet->setProjetDescription($data['projetDescription']);
+        }
+        if (isset($data['projetReference'])) {
+            $projet->setProjetReference($data['projetReference']);
+        }
+        if (isset($data['projetDateDemarrage'])) {
+            $projet->setProjetDateDemarrage(new \DateTime($data['projetDateDemarrage']));
+        }
+        if (isset($data['projetDateAchevement'])) {
+            $projet->setProjetDateAchevement(new \DateTime($data['projetDateAchevement']));
+        }
+        if (isset($data['projetUrlFonctionnel'])) {
+            $projet->setProjetUrlFonctionnel($data['projetUrlFonctionnel']);
+        }
+        if (isset($data['projetDescriptionServiceEffectivementRendus'])) {
+            $projet->setProjetDescriptionServiceEffectivementRendus($data['projetDescriptionServiceEffectivementRendus']);
+        }
+        
+        if (isset($data['lieu_id'])) {
+            $lieu = $entityManager->getRepository(Lieu::class)->find($data['lieu_id']);
+            if (!$lieu) {
+                return new JsonResponse(['message' => 'Lieu introuvable'], Response::HTTP_NOT_FOUND);
+            }
+            $projet->setLieu($lieu);
+        }
+        if (isset($data['client_id'])) {
+            $client = $entityManager->getRepository(Client::class)->find($data['client_id']);
+            if (!$client) {
+                return new JsonResponse(['message' => 'Client introuvable'], Response::HTTP_NOT_FOUND);
+            }
+            $projet->setClient($client);
+        }
+        if (isset($data['categories'])) {
+            // Supprimer les anciennes catégories associées au projet
+            foreach ($projet->getCategories() as $categorie) {
+                $projet->removeCategorie($categorie);
+            }
+            // Ajouter les nouvelles catégories
+            foreach ($data['categories'] as $categorieData) {
+                $categorie = $entityManager->getRepository(Categorie::class)->find($categorieData['id']);
+                if (!$categorie) {
+                    return new JsonResponse(['message' => 'Catégorie introuvable'], Response::HTTP_NOT_FOUND);
+                }
+                $projet->addCategorie($categorie);
+            }
+        }
+    
+        $entityManager->flush();
+    
+        return new JsonResponse('Projet mis à jour avec succès', Response::HTTP_OK);
+    }
+    
     public function checkToken(TokenStorageInterface $tokenStorage): void
     {
         // Récupérer le token d'authentification de Symfony

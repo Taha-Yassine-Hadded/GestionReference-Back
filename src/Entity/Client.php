@@ -39,7 +39,7 @@ class Client
     #[Assert\Email]
     private ?string $clientEmail = null;
 
-    #[ORM\OneToMany(targetEntity: Projet::class, mappedBy: "client", cascade: ["persist","remove"])]
+    #[ORM\OneToMany(targetEntity: Projet::class, mappedBy: "client",cascade: ["persist","remove"])]
     private $projets;
 
     #[ORM\ManyToOne(targetEntity: NatureClient::class)]

@@ -3,6 +3,7 @@
 namespace App\Controller\Api;
 
 use App\Entity\SituationFamiliale;
+use App\Entity\Employe; 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -78,10 +79,23 @@ class SituationFamilialeController extends AbstractController
     public function delete(SituationFamiliale $situationFamiliale, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
         $this->checkToken($tokenStorage);
+        
+        // Récupérer tous les employés liés à cette situation familiale
+        $employes = $entityManager->getRepository(Employe::class)->findBy(['situationFamiliale' => $situationFamiliale]);
+
+        // Mettre à jour les références à null dans tous les employés liés
+        foreach ($employes as $employe) {
+            $employe->setSituationFamiliale(null);
+            $entityManager->persist($employe);
+        }
+        $entityManager->flush();
+        
+        // Supprimer la situation familiale
         $entityManager->remove($situationFamiliale);
         $entityManager->flush();
 
         return new JsonResponse('Situation familiale supprimée avec succès', Response::HTTP_OK);
+    
     }
     public function checkToken(TokenStorageInterface $tokenStorage): void
     {

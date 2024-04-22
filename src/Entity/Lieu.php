@@ -23,7 +23,6 @@ class Lieu
 
     
     #[ORM\ManyToOne(targetEntity: Pays::class)]
-    #[Assert\NotBlank]
     private ?Pays $pays = null;
 
     // Ajout de la relation OneToMany avec Projet

@@ -19,11 +19,12 @@ class UserNotification
     #[ORM\Column]
     private ?bool $isRead = null;
 
-    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'userNotification')]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'userNotifications')]
     private User $user;
-
-    #[ORM\ManyToOne(targetEntity:  Notification::class, inversedBy: 'userNotification')]
+    
+    #[ORM\ManyToOne(targetEntity: Notification::class, inversedBy: 'userNotifications')]
     private Notification $notification;
+    
 
     public function getId(): ?int
     {
@@ -38,7 +39,6 @@ class UserNotification
     public function setIsRead(?bool $isRead): self
     {
         $this->isRead = $isRead;
-
         return $this;
     }
 
@@ -50,7 +50,6 @@ class UserNotification
     public function setUser(User $user): self
     {
         $this->user = $user;
-
         return $this;
     }
 
@@ -62,7 +61,6 @@ class UserNotification
     public function setNotification(Notification $notification): self
     {
         $this->notification = $notification;
-
         return $this;
     }
 }

@@ -9,6 +9,7 @@ use App\Entity\OrganismeDemandeur;
 use App\Repository\AppelOffreRepository;
 use App\Entity\Notification;
 use App\Entity\UserNotification;
+use App\Entity\User;
 use App\Repository\NotificationRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -19,10 +20,12 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use DoctrineTrait;
 
 class NotificationController extends AbstractController
 {
     private $entityManager;
+ 
 
     public function __construct(EntityManagerInterface $entityManager)
     {
@@ -40,6 +43,7 @@ class NotificationController extends AbstractController
         // Récupérer la date actuelle
         $dateActuelle = new \DateTime();
 
+        
         // Récupérer tous les AppelOffres
         $appelOffres = $this->entityManager->getRepository(AppelOffre::class)->findAll();
 
@@ -114,24 +118,8 @@ class NotificationController extends AbstractController
         return new JsonResponse($notificationsArray);
     }
     
-#[Route('/api/markNotificationAsRead', name: 'markNotificationAsRead', methods: ['GET'])]
-public function markNotificationAsRead(Notification $notification): void
-{
-    // Marquer la notification comme lue
-    $notification->setIsRead(true);
-    $this->entityManager->flush();
-}
 
-    public function checkToken(TokenStorageInterface $tokenStorage): void
-    {
-        // Récupérer le token d'authentification de Symfony
-        $token = $tokenStorage->getToken();
 
-        // Vérifier si le token d'authentification est présent et est de type TokenInterface
-        if (!$token instanceof TokenInterface) {
-            throw new AccessDeniedHttpException('Token d\'authentification manquant ou invalide');
-        }
-    }
     #[Route('/api/sendNotification/{id}', name: 'sendNotification', methods: ['GET'])]
     public function sendNotification(int $id, TokenStorageInterface $tokenStorage, Request $request): void
     {
@@ -166,15 +154,27 @@ public function markNotificationAsRead(Notification $notification): void
             $entityManager->persist($notification);
             $entityManager->flush();
     
-            // Maintenant, créer une entrée dans la table UserNotification
-            $userNotification = new UserNotification();
-            $userNotification->setUser($user);
-            $userNotification->setNotification($notification);
-            $userNotification->setIsRead(false); // Initialiser comme non lue
-    
-            // Enregistrer l'entrée dans la table UserNotification en base de données
-            $entityManager->persist($userNotification);
-            $entityManager->flush();
+            // Créer une nouvelle instance de UserNotification
+         // Créer une nouvelle instance de UserNotification
+         $userNotification = new UserNotification();
+         $userNotification->setUser($user);
+         $userNotification->setNotification($notification);
+         $userNotification->setIsRead(false); // Initialiser comme non lue
+ 
+         // Enregistrer la relation dans la base de données
+         $entityManager->persist($userNotification);
+         $entityManager->flush();
         }
     }
+    public function checkToken(TokenStorageInterface $tokenStorage): void
+    {
+        // Récupérer le token d'authentification de Symfony
+        $token = $tokenStorage->getToken();
+
+        // Vérifier si le token d'authentification est présent et est de type TokenInterface
+        if (!$token instanceof TokenInterface) {
+            throw new AccessDeniedHttpException('Token d\'authentification manquant ou invalide');
+        }
+
+}
 }

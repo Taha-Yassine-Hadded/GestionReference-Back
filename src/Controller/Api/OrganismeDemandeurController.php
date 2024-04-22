@@ -78,10 +78,28 @@ class OrganismeDemandeurController extends AbstractController
     public function delete(OrganismeDemandeur $organismeDemandeur, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
         $this->checkToken($tokenStorage);
-        $entityManager->remove($organismeDemandeur);
-        $entityManager->flush();
-
-        return new JsonResponse('Organisme demandeur supprimé avec succès', Response::HTTP_OK);
+        
+        // Vérifier s'il y a des AppelOffre associés à cet OrganismeDemandeur
+        if ($organismeDemandeur->getAppelOffres()->isEmpty()) {
+            // Aucun AppelOffre associé, donc supprimer simplement l'OrganismeDemandeur
+            $entityManager->remove($organismeDemandeur);
+            $entityManager->flush();
+            
+            return new JsonResponse('Organisme demandeur supprimé avec succès', Response::HTTP_OK);
+        } else {
+            // Des AppelOffre sont associés, mettre à jour les références à null dans chaque AppelOffre
+            foreach ($organismeDemandeur->getAppelOffres() as $appelOffre) {
+                $appelOffre->setOrganismeDemandeur(null);
+                $entityManager->persist($appelOffre);
+            }
+            $entityManager->flush();
+            
+            // Après avoir mis à jour les références, supprimer l'OrganismeDemandeur
+            $entityManager->remove($organismeDemandeur);
+            $entityManager->flush();
+            
+            return new JsonResponse('Les références à l\'Organisme demandeur ont été supprimées des Appels d\'offre associés, et l\'Organisme demandeur a été supprimé avec succès.', Response::HTTP_OK);
+        }
     }
     public function checkToken(TokenStorageInterface $tokenStorage): void
     {

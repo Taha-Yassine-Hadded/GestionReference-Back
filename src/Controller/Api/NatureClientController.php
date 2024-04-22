@@ -3,6 +3,7 @@
 namespace App\Controller\Api;
 
 use App\Entity\NatureClient;
+use App\Entity\Client;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -79,12 +80,25 @@ class NatureClientController extends AbstractController
     public function delete(NatureClient $natureClient, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
         $this->checkToken($tokenStorage);
+        
+        // Récupérer tous les clients liés à cette NatureClient
+        $clients = $entityManager->getRepository(Client::class)->findBy(['natureClient' => $natureClient]);
+
+        // Mettre à jour les références à null dans tous les clients liés
+        foreach ($clients as $client) {
+            $client->setNatureClient(null);
+            $entityManager->persist($client);
+        }
+        $entityManager->flush();
+        
+        // Supprimer la NatureClient
         $entityManager->remove($natureClient);
         $entityManager->flush();
 
-        return new JsonResponse('Nature client supprimée avec succès', Response::HTTP_OK);
+        return new JsonResponse('NatureClient supprimée avec succès', Response::HTTP_OK);
+    }
     
-}
+
 public function checkToken(TokenStorageInterface $tokenStorage): void
     {
         // Récupérer le token d'authentification de Symfony

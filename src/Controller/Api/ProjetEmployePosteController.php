@@ -37,11 +37,12 @@ class ProjetEmployePosteController extends AbstractController
         $projetEmployePostes = $this->projetEmployePosteRepository->findAll();
         $serializedProjetEmployePostes = [];
         foreach ($projetEmployePostes as $projetEmployePoste) {
-            $serializedProjetEmployePostes[] = $this->serializeProjetEmployePoste($projetEmployePoste);
+            // Appel de la fonction serializeProjetEmployePoste() avec les deux arguments requis
+            $serializedProjetEmployePostes[] = $this->serializeProjetEmployePosteNom($projetEmployePoste, $tokenStorage);
         }
         return new JsonResponse($serializedProjetEmployePostes, Response::HTTP_OK);
     }
-
+    
     #[Route('/api/getOne/projet-employe-poste/{id}', name: 'api_projet_get_one', methods: ['GET'])]
     public function getOne($id, TokenStorageInterface $tokenStorage): JsonResponse
     {
@@ -86,7 +87,7 @@ class ProjetEmployePosteController extends AbstractController
     /**
      * Serialize ProjetEmployePoste entity to array.
      */
-    private function serializeProjetEmployePoste(ProjetEmployePoste $projetEmployePoste, TokenStorageInterface $tokenStorage): array
+    private function serializeProjetEmployePoste(ProjetEmployePoste $projetEmployePoste): array
     {
         return [
             'id' => $projetEmployePoste->getId(),
@@ -94,7 +95,20 @@ class ProjetEmployePosteController extends AbstractController
             'employe_id' => $projetEmployePoste->getEmploye()->getId(),
             'projet_id' => $projetEmployePoste->getProjet()->getId(),
             'poste_id' => $projetEmployePoste->getPoste()->getId(),
-           
+            // Ajoutez d'autres propriétés de l'entité ProjetEmployePoste si nécessaire
+        ];
+    }
+/**
+     * Serialize ProjetEmployePoste entity to array.
+     */
+    private function serializeProjetEmployePosteNom(ProjetEmployePoste $projetEmployePoste): array
+    {
+        return [
+            'id' => $projetEmployePoste->getId(),
+            'duree' => $projetEmployePoste->getDuree(),
+            'employe_id' => $projetEmployePoste->getEmploye()->getPersonneContact(),
+            'projet_id' => $projetEmployePoste->getProjet()->getProjetLibelle(),
+            'poste_id' => $projetEmployePoste->getPoste()->getPosteNom(),
             // Ajoutez d'autres propriétés de l'entité ProjetEmployePoste si nécessaire
         ];
     }
@@ -140,7 +154,7 @@ class ProjetEmployePosteController extends AbstractController
 
     /**
      * Serialize Projet entities to array.
-     */
+     **/
     private function serializeProjets($projets): array
     {
         $serializedProjets = [];
@@ -174,6 +188,8 @@ class ProjetEmployePosteController extends AbstractController
     
     return $serializedEmployes;
 }
+
+
 public function checkToken(TokenStorageInterface $tokenStorage): void
     {
         // Récupérer le token d'authentification de Symfony
