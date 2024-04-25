@@ -41,6 +41,14 @@ class ClientController extends AbstractController
 
         return new JsonResponse($data, Response::HTTP_OK);
     }
+    #[Route('/api/getOne/client/{id}', name: 'api_client_Nom', methods: ['GET'])]
+    public function getByNom(Client $client, TokenStorageInterface $tokenStorage): JsonResponse
+    {
+        $this->checkToken($tokenStorage);
+        $data = $this->serializeClientNom($client);
+
+        return new JsonResponse($data, Response::HTTP_OK);
+    }
 
     #[Route('/api/create/clients', name: 'api_client_create', methods: ['POST'])]
     public function create(Request $request, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse

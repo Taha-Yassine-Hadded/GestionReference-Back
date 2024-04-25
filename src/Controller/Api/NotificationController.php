@@ -39,35 +39,41 @@ class NotificationController extends AbstractController
         
         // Supprimer toutes les anciennes notifications
         $this->entityManager->getRepository(Notification::class)->createQueryBuilder('n')->delete()->getQuery()->execute();
-
+    
         // Récupérer la date actuelle
         $dateActuelle = new \DateTime();
-
-        
+    
         // Récupérer tous les AppelOffres
         $appelOffres = $this->entityManager->getRepository(AppelOffre::class)->findAll();
-
+    
         // Initialiser un tableau pour stocker les IDs des AppelOffres affectés
         $affectedAppelOffresIds = [];
-
+    
         foreach ($appelOffres as $appelOffre) {
             // Vérifier si la date d'achèvement est dans les 10 jours à partir de la date actuelle
             $limiteNotification = new \DateTime('+10 days');
             if ($appelOffre->getAppelOffreDateRemise() <= $limiteNotification && $appelOffre->getAppelOffreDateRemise() > $dateActuelle) {
+                // Calculer la différence entre la date d'achèvement et la date actuelle
+                $diff = date_diff($dateActuelle, $appelOffre->getAppelOffreDateRemise());
+                $joursRestants = $diff->days;
+    
+                // Construire le message de la notification avec le nombre de jours restants
+                $message = "La date d'achèvement de l'appel d'offre est dans $joursRestants jours.";
+    
                 // Créer une nouvelle notification
                 $notification = new Notification();
-                $notification->setMessage("La date d'achèvement de l'appel d'offre est proche.");
+                $notification->setMessage($message);
                 $notification->setDateCreation(new \DateTime()); // Définir la date de création
                 $notification->setAppelOffre($appelOffre);
-
+    
                 // Enregistrer la notification en base de données
                 $this->entityManager->persist($notification);
-
+    
                 // Ajouter l'ID de l'AppelOffre à la liste des IDs affectés
                 $affectedAppelOffresIds[] = $appelOffre->getId();
             }
         }
-
+    
         // Enregistrer toutes les notifications créées
         $this->entityManager->flush();
         
@@ -120,52 +126,7 @@ class NotificationController extends AbstractController
     
 
 
-    #[Route('/api/sendNotification/{id}', name: 'sendNotification', methods: ['GET'])]
-    public function sendNotification(int $id, TokenStorageInterface $tokenStorage, Request $request): void
-    {
-        $this->checkToken($tokenStorage);
-        $entityManager = $this->getDoctrine()->getManager();
-        $user = $this->getUser();
-    
-        // Récupérer l'objet AppelOffre en fonction de son ID
-        $appelOffre = $entityManager->getRepository(AppelOffre::class)->find($id);
-    
-        if (!$appelOffre) {
-            throw $this->createNotFoundException('Aucun AppelOffre trouvé pour cet ID.');
-        }
-    
-        // Vérifier si une notification identique non lue existe déjà pour cet utilisateur
-        $existingNotification = $entityManager->getRepository(Notification::class)->findOneBy([
-            'appelOffre' => $appelOffre,
-            'user' => $user,
-            'isRead' => false,
-        ]);
-    
-        if (!$existingNotification) {
-            // Créer une nouvelle notification
-            $notification = new Notification();
-            $notification->setMessage("La date d'achèvement de l'appel d'offre est proche.");
-            $notification->setDateCreation(new \DateTime());
-            $notification->setAppelOffre($appelOffre);
-            $notification->setUser($user);
-            $notification->setIsRead(false); // Initialiser comme non lue
-    
-            // Enregistrer la notification en base de données
-            $entityManager->persist($notification);
-            $entityManager->flush();
-    
-            // Créer une nouvelle instance de UserNotification
-         // Créer une nouvelle instance de UserNotification
-         $userNotification = new UserNotification();
-         $userNotification->setUser($user);
-         $userNotification->setNotification($notification);
-         $userNotification->setIsRead(false); // Initialiser comme non lue
- 
-         // Enregistrer la relation dans la base de données
-         $entityManager->persist($userNotification);
-         $entityManager->flush();
-        }
-    }
+
     public function checkToken(TokenStorageInterface $tokenStorage): void
     {
         // Récupérer le token d'authentification de Symfony

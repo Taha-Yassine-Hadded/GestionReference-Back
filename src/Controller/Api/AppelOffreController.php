@@ -80,6 +80,21 @@ class AppelOffreController extends AbstractController
     
         return new JsonResponse($appelOffreArray);
     }
+    #[Route('/api/getOne/appel-offres/{id}', name: 'api_appel_offres_get', methods: ['GET'])]
+    public function getOneByName(int $id, AppelOffreRepository $appelOffreRepository, Request $request, TokenStorageInterface $tokenStorage): JsonResponse
+    {
+        $this->checkToken($tokenStorage);
+
+        $appelOffre = $appelOffreRepository->find($id);
+    
+        if (!$appelOffre) {
+            return new JsonResponse(['message' => 'Appel d\'offre non trouvé'], Response::HTTP_NOT_FOUND);
+        }
+    
+        $appelOffreArray = $this->serializeAppelOffreNom($appelOffre);
+    
+        return new JsonResponse($appelOffreArray);
+    }
 
     #[Route('/api/put/appel-offres/{id}', name: 'api_appel_offres_update', methods: ['PUT'])]
     public function update(int $id, Request $request, EntityManagerInterface $entityManager, AppelOffreRepository $appelOffreRepository, TokenStorageInterface $tokenStorage): JsonResponse

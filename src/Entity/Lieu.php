@@ -26,7 +26,7 @@ class Lieu
     private ?Pays $pays = null;
 
     // Ajout de la relation OneToMany avec Projet
-    #[ORM\OneToMany(targetEntity: Projet::class, mappedBy: "lieu",cascade: ["persist","remove"])]
+    #[ORM\OneToMany(targetEntity: Projet::class, mappedBy: "lieu")]
     private $projets;
 
     public function __construct()

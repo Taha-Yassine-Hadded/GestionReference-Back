@@ -153,69 +153,70 @@ private function serializeEmployeNom(Employe $employe): array
 }
 
     
-    #[Route('/api/put/employe/{id}', name: 'api_employe_update', methods: ['PUT'])]
-    public function update(Request $request, EntityManagerInterface $entityManager, $id, TokenStorageInterface $tokenStorage): JsonResponse
-    {
-        $this->checkToken($tokenStorage);
-        $employe = $entityManager->getRepository(Employe::class)->find($id);
-        if (!$employe) {
-            return new JsonResponse(['message' => 'Employé non trouvé'], Response::HTTP_NOT_FOUND);
-        }
-
-        $data = json_decode($request->getContent(), true);
-
-        $employe->setPersonneContact($data['personneContact'] ?? $employe->getPersonneContact());
-        $employe->setEmployeDateNaissance(new \DateTime($data['employeDateNaissance'] ?? $employe->getEmployeDateNaissance()));
-        $employe->setEmployeAdresse($data['employeAdresse'] ?? $employe->getEmployeAdresse());
-        $employe->setEmployePrincipaleQualification($data['employePrincipaleQualification'] ?? $employe->getEmployePrincipaleQualification());
-        $employe->setEmployeFormation($data['employeFormation'] ?? $employe->getEmployeFormation());
-        $employe->setEmployeAffiliationDesAssociationsGroupPro($data['employeAffiliationDesAssociationsGroupPro'] ?? $employe->getEmployeAffiliationDesAssociationsGroupPro());
-
-        // Set the related entities
-        $nationaliteId = $data['nationalite_id'] ?? null;
-        if ($nationaliteId) {
-            $nationalite = $entityManager->getRepository(Nationalite::class)->find($nationaliteId);
-            if (!$nationalite) {
-                return new JsonResponse(['message' => 'Nationalité introuvable'], Response::HTTP_NOT_FOUND);
-            }
-            $employe->setNationalite($nationalite);
-        }
-
-        $situationFamilialeId = $data['situationFamiliale_id'] ?? null;
-        if ($situationFamilialeId) {
-            $situationFamiliale = $entityManager->getRepository(SituationFamiliale::class)->find($situationFamilialeId);
-            if (!$situationFamiliale) {
-                return new JsonResponse(['message' => 'Situation familiale introuvable'], Response::HTTP_NOT_FOUND);
-            }
-            $employe->setSituationFamiliale($situationFamiliale);
-        }
-
-        $posteId = $data['poste_id'] ?? null;
-        if ($posteId) {
-            $poste = $entityManager->getRepository(Poste::class)->find($posteId);
-            if (!$poste) {
-                return new JsonResponse(['message' => 'Poste introuvable'], Response::HTTP_NOT_FOUND);
-            }
-            $employe->setPoste($poste);
-        }
-
-        // Update languages associated with the employee
-        if (isset($data['langue_ids'])) {
-            $employe->getLangues()->clear(); // Clear existing languages
-            $langueIds = $data['langue_ids'];
-            foreach ($langueIds as $langueId) {
-                $langue = $entityManager->getRepository(Langue::class)->find($langueId);
-                if (!$langue) {
-                    return new JsonResponse(['message' => 'Langue introuvable'], Response::HTTP_NOT_FOUND);
-                }
-                $employe->addLangue($langue);
-            }
-        }
-
-        $entityManager->flush();
-
-        return new JsonResponse('Employé mis à jour avec succès', Response::HTTP_OK);
+#[Route('/api/put/employe/{id}', name: 'api_employe_update', methods: ['PUT'])]
+public function update(Request $request, EntityManagerInterface $entityManager, $id, TokenStorageInterface $tokenStorage): JsonResponse
+{
+    $this->checkToken($tokenStorage);
+    $employe = $entityManager->getRepository(Employe::class)->find($id);
+    if (!$employe) {
+        return new JsonResponse(['message' => 'Employé non trouvé'], Response::HTTP_NOT_FOUND);
     }
+
+    $data = json_decode($request->getContent(), true);
+
+    $employe->setPersonneContact($data['personneContact'] ?? $employe->getPersonneContact());
+    $employe->setEmployeDateNaissance(new \DateTime($data['employeDateNaissance'] ?? $employe->getEmployeDateNaissance()));
+    $employe->setEmployeAdresse($data['employeAdresse'] ?? $employe->getEmployeAdresse());
+    $employe->setEmployePrincipaleQualification($data['employePrincipaleQualification'] ?? $employe->getEmployePrincipaleQualification());
+    $employe->setEmployeFormation($data['employeFormation'] ?? $employe->getEmployeFormation());
+    $employe->setEmployeAffiliationDesAssociationsGroupPro($data['employeAffiliationDesAssociationsGroupPro'] ?? $employe->getEmployeAffiliationDesAssociationsGroupPro());
+
+    // Set the related entities
+    $nationaliteId = $data['nationalite_id'] ?? null;
+    if ($nationaliteId) {
+        $nationalite = $entityManager->getRepository(Nationalite::class)->find($nationaliteId);
+        if (!$nationalite) {
+            return new JsonResponse(['message' => 'Nationalité introuvable'], Response::HTTP_NOT_FOUND);
+        }
+        $employe->setNationalite($nationalite);
+    }
+
+    $situationFamilialeId = $data['situationFamiliale_id'] ?? null;
+    if ($situationFamilialeId) {
+        $situationFamiliale = $entityManager->getRepository(SituationFamiliale::class)->find($situationFamilialeId);
+        if (!$situationFamiliale) {
+            return new JsonResponse(['message' => 'Situation familiale introuvable'], Response::HTTP_NOT_FOUND);
+        }
+        $employe->setSituationFamiliale($situationFamiliale);
+    }
+
+    $posteId = $data['poste_id'] ?? null;
+    if ($posteId) {
+        $poste = $entityManager->getRepository(Poste::class)->find($posteId);
+        if (!$poste) {
+            return new JsonResponse(['message' => 'Poste introuvable'], Response::HTTP_NOT_FOUND);
+        }
+        $employe->setPoste($poste);
+    }
+
+    // Update languages associated with the employee
+    if (isset($data['langue_ids'])) {
+        $employe->getLangues()->clear(); // Clear existing languages
+        $langueIds = $data['langue_ids'];
+        foreach ($langueIds as $langueId) {
+            $langue = $entityManager->getRepository(Langue::class)->find($langueId);
+            if (!$langue) {
+                return new JsonResponse(['message' => 'Langue introuvable'], Response::HTTP_NOT_FOUND);
+            }
+            $employe->addLangue($langue);
+        }
+    }
+
+    $entityManager->flush();
+
+    return new JsonResponse('Employé mis à jour avec succès', Response::HTTP_OK);
+}
+
     #[Route('/api/delete/employe/{id}', name: 'api_employe_delete', methods: ['DELETE'])]
     public function delete($id, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
@@ -239,6 +240,17 @@ private function serializeEmployeNom(Employe $employe): array
             return new JsonResponse(['message' => 'Employé non trouvé'], Response::HTTP_NOT_FOUND);
         }
         $serializedEmploye = $this->serializeEmploye($employe);
+        return new JsonResponse($serializedEmploye, Response::HTTP_OK);
+    }
+    #[Route('/api/getOne/employe/{id}', name: 'api_employe_get_one', methods: ['GET'])]
+    public function getOneByNOM($id, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
+    {
+        $this->checkToken($tokenStorage);
+        $employe = $entityManager->getRepository(Employe::class)->find($id);
+        if (!$employe) {
+            return new JsonResponse(['message' => 'Employé non trouvé'], Response::HTTP_NOT_FOUND);
+        }
+        $serializedEmploye = $this->serializeEmployeNom($employe);
         return new JsonResponse($serializedEmploye, Response::HTTP_OK);
     }
     private function serializeLangues($langues): array

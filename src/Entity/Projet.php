@@ -49,7 +49,7 @@ class Projet
     #[ORM\ManyToOne(targetEntity: Lieu::class)]
     private ?Lieu $lieu;
 
-    #[ORM\ManyToOne(targetEntity: Client::class, cascade: ["persist","remove"])]
+    #[ORM\ManyToOne(targetEntity: Client::class)]
     private ?Client $client; 
 
     #[ORM\OneToMany(targetEntity: ProjetEmployePoste::class, mappedBy: 'projet', cascade: ["persist","remove"])]
@@ -58,7 +58,7 @@ class Projet
     #[ORM\OneToMany(targetEntity: ProjetPreuve::class, mappedBy: "projet", cascade: ["persist","remove"])]
     private Collection $projetPreuves;
 
-    #[ORM\ManyToMany(targetEntity: Categorie::class, inversedBy: 'projets', cascade: ["persist","remove"])]
+    #[ORM\ManyToMany(targetEntity: Categorie::class, inversedBy: 'projets')]
     #[Assert\NotBlank]
     private $categories;
 

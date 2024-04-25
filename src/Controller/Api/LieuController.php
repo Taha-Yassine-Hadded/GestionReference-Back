@@ -111,7 +111,7 @@ class LieuController extends AbstractController
         return new JsonResponse(['message' => 'Lieu mis à jour avec succès'], Response::HTTP_OK);
     }
 
-    #[Route('/api/delete/lieux/{id}', name: 'api_lieu_delete', methods: ['DELETE'])]
+    #[Route('/api/delete/lieu/{id}', name: 'api_lieu_delete', methods: ['DELETE'])]
     public function deleteLieu(Lieu $lieu, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
         $this->checkToken($tokenStorage);
@@ -119,7 +119,7 @@ class LieuController extends AbstractController
         // Récupérer tous les projets qui ont ce lieu
         $projets = $entityManager->getRepository(Projet::class)->findBy(['lieu' => $lieu]);
 
-        // Mettre à jour les références à null dans tous les projets liés
+        // Mettre à jour les références à null dans tous les projets liés pour les dissocier du lieu
         foreach ($projets as $projet) {
             $projet->setLieu(null);
             $entityManager->persist($projet);
@@ -130,7 +130,7 @@ class LieuController extends AbstractController
         $entityManager->remove($lieu);
         $entityManager->flush();
 
-        return new JsonResponse(['message' => 'Lieu supprimé avec succès'], Response::HTTP_OK);
+        return new JsonResponse('Lieu supprimé avec succès', Response::HTTP_OK);
     }
     public function checkToken(TokenStorageInterface $tokenStorage): void
     {

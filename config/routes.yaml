@@ -25,3 +25,61 @@ update_projet:
     path: /api/update/projet/{id}
     controller: App\Controller\Api\ProjetController::update
     methods: PUT
+api_appel_offres_create:
+    path: '/api/create/appel-offres'
+    controller: 'App\Controller\Api\AppelOffreController::create'
+    methods: ['POST']
+
+api_appel_offres_get:
+    path: '/api/get/appel-offres/{id}'
+    controller: 'App\Controller\Api\AppelOffreController::getOne'
+    methods: ['GET']
+
+api_appel_offres_get_by_name:
+    path: '/api/getOne/appel-offres/{id}'
+    controller: 'App\Controller\Api\AppelOffreController::getOneByName'
+    methods: ['GET']
+
+api_appel_offres_update:
+    path: '/api/put/appel-offres/{id}'
+    controller: 'App\Controller\Api\AppelOffreController::update'
+    methods: ['PUT']
+
+api_appel_offres_delete:
+    path: '/api/delete/appel-offres/{id}'
+    controller: 'App\Controller\Api\AppelOffreController::delete'
+    methods: ['DELETE']
+
+api_appel_offres_index:
+    path: '/api/getAll/appelOffres'
+    controller: 'App\Controller\Api\AppelOffreController::index'
+    methods: ['GET']
+api_employe_create:
+    path: '/api/create/employe'
+    controller: 'App\Controller\Api\EmployeController::create'
+    methods: ['POST']
+
+api_employe_get_all:
+    path: '/api/getAll/employes'
+    controller: 'App\Controller\Api\EmployeController::getAll'
+    methods: ['GET']
+
+api_employe_update:
+    path: '/api/put/employe/{id}'
+    controller: 'App\Controller\Api\EmployeController::update'
+    methods: ['PUT']
+
+api_employe_delete:
+    path: '/api/delete/employe/{id}'
+    controller: 'App\Controller\Api\EmployeController::delete'
+    methods: ['DELETE']
+
+api_employe_get_one:
+    path: '/api/get/employe/{id}'
+    controller: 'App\Controller\Api\EmployeController::getOne'
+    methods: ['GET']
+
+api_employe_get_one_by_name:
+    path: '/api/getOne/employe/{id}'
+    controller: 'App\Controller\Api\EmployeController::getOneByNOM'
+    methods: ['GET']

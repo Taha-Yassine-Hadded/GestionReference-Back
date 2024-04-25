@@ -6,6 +6,8 @@ use App\Entity\Projet;
 use App\Entity\Client;
 use App\Entity\Categorie;
 use App\Entity\Lieu;
+use App\Entity\ProjetEmployePoste;
+use App\Entity\ProjetPreuve;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -48,7 +50,7 @@ class ProjetController extends AbstractController
             return new JsonResponse(['message' => 'Client introuvable'], Response::HTTP_NOT_FOUND);
         }
         $projet->setClient($client);
-    
+       
         // Ajouter les catégories associées au projet
         foreach ($data['categories'] as $categorieData) {
             $categorie = $entityManager->getRepository(Categorie::class)->find($categorieData['id']);
@@ -71,7 +73,7 @@ class ProjetController extends AbstractController
         $projets = $entityManager->getRepository(Projet::class)->findAll();
         $serializedProjets = [];
         foreach ($projets as $projet) {
-            $serializedProjets[] = $this->serializeProjet($projet);
+            $serializedProjets[] = $this-> serializeProjetNom($projet);
         }
         return new JsonResponse($serializedProjets, Response::HTTP_OK);
     }
@@ -87,7 +89,17 @@ class ProjetController extends AbstractController
         $serializedProjet = $this->serializeProjet($projet);
         return new JsonResponse($serializedProjet, Response::HTTP_OK);
     }
-
+    #[Route('/api/getOne/projet/{id}', name: 'api_projet_get_one', methods: ['GET'])]
+    public function getProjetOne($id, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
+    {
+        $this->checkToken($tokenStorage);
+        $projet = $entityManager->getRepository(Projet::class)->find($id);
+        if (!$projet) {
+            return new JsonResponse(['message' => 'Projet non trouvé'], Response::HTTP_NOT_FOUND);
+        }
+        $serializedProjet = $this->serializeProjetNom($projet);
+        return new JsonResponse($serializedProjet, Response::HTTP_OK);
+    }
     #[Route('/api/delete/projet/{id}', name: 'api_projet_delete', methods: ['DELETE'])]
     public function delete($id, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
@@ -111,14 +123,35 @@ class ProjetController extends AbstractController
         return [
             'id' => $projet->getId(),
             'projetLibelle' => $projet->getProjetLibelle(),
-       'projetDescirption' => $projet->getProjetDescirption(),
+            'projetDescirption' => $projet->getProjetDescirption(),
             'projetReference' => $projet->getProjetReference(),
             'projetDateDemarrage' => $projet->getProjetDateDemarrage()->format('Y-m-d'),
             'projetDateAchevement' => $projet->getProjetDateAchevement()->format('Y-m-d'),
             'projetUrlFonctionnel' => $projet->getProjetUrlFonctionnel(),
-          'projetDescriptionServiceEffectivementRendus' => $projet->getProjetDescriptionServiceEffectivementRendus(),
+            'projetDescriptionServiceEffectivementRendus' => $projet->getProjetDescriptionServiceEffectivementRendus(),
             'clientId' =>  $projet->getClient() ?  $projet->getClient()->getId() : null,
             'lieuId' =>  $projet->getLieu() ?  $projet->getLieu()->getId() : null,
+            'categories' => $categories,
+        ];
+    }
+/**
+     * Serialize Projet entity to array.
+     */
+    private function serializeProjetNom(Projet $projet): array
+    {
+        $categories = $this->serializeCategories($projet->getCategories());
+        // Here, you can serialize other related entities like employes if needed
+        return [
+            'id' => $projet->getId(),
+            'projetLibelle' => $projet->getProjetLibelle(),
+            'projetDescirption' => $projet->getProjetDescirption(),
+            'projetReference' => $projet->getProjetReference(),
+            'projetDateDemarrage' => $projet->getProjetDateDemarrage()->format('Y-m-d'),
+            'projetDateAchevement' => $projet->getProjetDateAchevement()->format('Y-m-d'),
+            'projetUrlFonctionnel' => $projet->getProjetUrlFonctionnel(),
+            'projetDescriptionServiceEffectivementRendus' => $projet->getProjetDescriptionServiceEffectivementRendus(),
+            'clientId' =>  $projet->getClient() ?  $projet->getClient()->getPersonneContact() : null,
+            'lieuId' =>  $projet->getLieu() ?  $projet->getLieu()->getLieuNom() : null,
             'categories' => $categories,
         ];
     }

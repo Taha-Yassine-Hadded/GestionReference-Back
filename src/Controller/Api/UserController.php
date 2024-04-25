@@ -58,34 +58,36 @@ class UserController extends AbstractController
         $this->authorizationChecker = $authorizationChecker;
     }
 
-    #[Route('/userCreate', name: 'user_create', methods: ['POST'])]
-    public function userCreate(Request $request): Response
-    {
-        $data = json_decode($request->getContent(), true);
+    #[Route('/api/userCreate', name: 'user_create', methods: ['POST'])]
+public function userCreate(Request $request): Response
+{
+    $data = json_decode($request->getContent(), true);
 
-        $email = $data["email"];
-        $password = $data["password"];
-        $role = $data["role"];
-        $username = $data["username"];
+    $email = $data["email"];
+    $password = $data["password"];
+    // Définir le rôle par défaut à "user"
+    $role = $data["role"] ?? "ROLE_USER";
+    $username = $data["username"];
 
-        // Création d'un nouvel utilisateur
-        $user = new User();
-        $user->setEmail($email);
-        $hashedPassword = $this->passwordHasher->hashPassword($user, $password);
-        $user->setPassword($hashedPassword);
-        $user->setRoles([$role]);
-        $user->setUsername($username);
+    // Création d'un nouvel utilisateur
+    $user = new User();
+    $user->setEmail($email);
+    $hashedPassword = $this->passwordHasher->hashPassword($user, $password);
+    $user->setPassword($hashedPassword);
+    $user->setRoles([$role]);
+    $user->setUsername($username);
 
-        $this->entityManager->persist($user);
-        $this->entityManager->flush();
+    $this->entityManager->persist($user);
+    $this->entityManager->flush();
 
-        return new JsonResponse([
-            "status" => true,
-            "message" => "L'utilisateur a été créé avec succès !",
-        ]);
-    }
+    return new JsonResponse([
+        "status" => true,
+        "message" => "L'utilisateur a été créé avec succès !",
+    ]);
+}
 
-    #[Route('/login', name: 'login', methods: ['POST'])]
+
+    #[Route('/api/login', name: 'login', methods: ['POST'])]
     public function login(Request $request): Response
     {
         $data = json_decode($request->getContent(), true);
@@ -161,7 +163,7 @@ class UserController extends AbstractController
         return new JsonResponse(['message' => 'Mot de passe changé avec succès'], 200);
     }
 
-    #[Route('/forgot-password', name: 'forgot_password', methods: ['POST'])]
+    #[Route('/api/forgot-password', name: 'forgot_password', methods: ['POST'])]
     public function forgotPassword(Request $request, UserRepository $userRepository, MailerInterface $mailer): Response
     {
         $data = json_decode($request->getContent(), true);
