@@ -33,21 +33,24 @@ class MoyenLivraisonController extends AbstractController
     }
 
     #[Route('/api/getAll/moyen-livraisons', name: 'api_moyen_livraison_get_all', methods: ['GET'])]
-    public function getAll(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
-    {
-        $this->checkToken($tokenStorage);
-        $moyenLivraisons = $entityManager->getRepository(MoyenLivraison::class)->findAll();
-        $data = [];
-
-        foreach ($moyenLivraisons as $moyenLivraison) {
-            $data[] = [
-                'moyenLivraisonId' => $moyenLivraison->getId(),
-                'moyenLivraison' => $moyenLivraison->getMoyenLivraison(),
-            ];
-        }
-
-        return new JsonResponse($data, Response::HTTP_OK);
+public function getAll(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
+{
+    $this->checkToken($tokenStorage);
+    
+    // Récupérer les moyens de livraison triés par nom
+    $moyenLivraisonRepository = $entityManager->getRepository(MoyenLivraison::class);
+    $moyenLivraisons = $moyenLivraisonRepository->findBy([], ['moyenLivraison' => 'ASC']);
+    
+    $data = [];
+    foreach ($moyenLivraisons as $moyenLivraison) {
+        $data[] = [
+            'moyenLivraisonId' => $moyenLivraison->getId(),
+            'moyenLivraison' => $moyenLivraison->getMoyenLivraison(),
+        ];
     }
+
+    return new JsonResponse($data, Response::HTTP_OK);
+}
 
     #[Route('/api/get/moyen-livraisons/{id}', name: 'api_moyen_livraison_get', methods: ['GET'])]
     public function getOne(MoyenLivraison $moyenLivraison, TokenStorageInterface $tokenStorage): JsonResponse

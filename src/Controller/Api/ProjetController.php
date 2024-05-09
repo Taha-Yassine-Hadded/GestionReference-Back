@@ -35,46 +35,54 @@ class ProjetController extends AbstractController
         $projet->setProjetDateDemarrage(new \DateTime($data['projetDateDemarrage']));
         $projet->setProjetDateAchevement(new \DateTime($data['projetDateAchevement']));
         $projet->setProjetUrlFonctionnel($data['projetUrlFonctionnel']);
-      $projet->setProjetDescriptionServiceEffectivementRendus($data['projetDescriptionServiceEffectivementRendus']);
+        $projet->setProjetDescriptionServiceEffectivementRendus($data['projetDescriptionServiceEffectivementRendus']);
     
         // Récupérer le lieu associé
-        $lieu = $entityManager->getRepository(Lieu::class)->find($data['lieu_id']);
+        $lieu = $entityManager->getRepository(Lieu::class)->find($data['lieuId']);
         if (!$lieu) {
             return new JsonResponse(['message' => 'Lieu introuvable'], Response::HTTP_NOT_FOUND);
         }
         $projet->setLieu($lieu);
     
         // Récupérer le client associé
-        $client = $entityManager->getRepository(Client::class)->find($data['client_id']);
+        $client = $entityManager->getRepository(Client::class)->find($data['clientId']);
         if (!$client) {
             return new JsonResponse(['message' => 'Client introuvable'], Response::HTTP_NOT_FOUND);
         }
         $projet->setClient($client);
        
-        // Ajouter les catégories associées au projet
-        foreach ($data['categories'] as $categorieData) {
-            $categorie = $entityManager->getRepository(Categorie::class)->find($categorieData['id']);
-            if (!$categorie) {
-                return new JsonResponse(['message' => 'Catégorie introuvable'], Response::HTTP_NOT_FOUND);
-            }
-            $projet->addCategorie($categorie);
+       
+   // Add languages associated with the employee
+   if (isset($data['categorie_ids'])) {
+    $categorieIds = $data['categorie_ids'];
+    foreach ($categorieIds as $categorieId) {
+        $categorie = $entityManager->getRepository(Categorie::class)->find($categorieId);
+        if (!$langue) {
+            return new JsonResponse(['message' => 'categorie introuvable'], Response::HTTP_NOT_FOUND);
         }
-
+        $employe->addCategorie($langue);
+    }
+}
         $entityManager->persist($projet);
         $entityManager->flush();
     
         return new JsonResponse('Projet créé avec succès', Response::HTTP_CREATED);
     }
-
     #[Route('/api/getAll/projets', name: 'api_projet_get_all', methods: ['GET'])]
     public function getAll(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
         $this->checkToken($tokenStorage);
-        $projets = $entityManager->getRepository(Projet::class)->findAll();
+        
+        // Récupérer tous les projets triés par projetLibelle
+        $projetRepository = $entityManager->getRepository(Projet::class);
+        $projets = $projetRepository->findBy([], ['projetLibelle' => 'ASC']);
+        
+        // Sérialiser les projets
         $serializedProjets = [];
         foreach ($projets as $projet) {
-            $serializedProjets[] = $this-> serializeProjetNom($projet);
+            $serializedProjets[] = $this->serializeProjetNom($projet);
         }
+        
         return new JsonResponse($serializedProjets, Response::HTTP_OK);
     }
 
@@ -123,7 +131,7 @@ class ProjetController extends AbstractController
         return [
             'id' => $projet->getId(),
             'projetLibelle' => $projet->getProjetLibelle(),
-            'projetDescirption' => $projet->getProjetDescirption(),
+            'projetDescription' => $projet->getProjetDescription(),
             'projetReference' => $projet->getProjetReference(),
             'projetDateDemarrage' => $projet->getProjetDateDemarrage()->format('Y-m-d'),
             'projetDateAchevement' => $projet->getProjetDateAchevement()->format('Y-m-d'),
@@ -144,12 +152,12 @@ class ProjetController extends AbstractController
         return [
             'id' => $projet->getId(),
             'projetLibelle' => $projet->getProjetLibelle(),
-            'projetDescirption' => $projet->getProjetDescirption(),
+            'projetDescription' => $projet->getProjetDescription(),
             'projetReference' => $projet->getProjetReference(),
             'projetDateDemarrage' => $projet->getProjetDateDemarrage()->format('Y-m-d'),
             'projetDateAchevement' => $projet->getProjetDateAchevement()->format('Y-m-d'),
             'projetUrlFonctionnel' => $projet->getProjetUrlFonctionnel(),
-            'projetDescriptionServiceEffectivementRendus' => $projet->getProjetDescriptionServiceEffectivementRendus(),
+            'projetDescriptionServiceEffectivementRendus' => $projet-> getProjetDescriptionServiceEffectivementRendus(),
             'clientId' =>  $projet->getClient() ?  $projet->getClient()->getPersonneContact() : null,
             'lieuId' =>  $projet->getLieu() ?  $projet->getLieu()->getLieuNom() : null,
             'categories' => $categories,
@@ -186,28 +194,15 @@ class ProjetController extends AbstractController
         $data = json_decode($request->getContent(), true);
     
         // Mettre à jour les champs du projet
-        if (isset($data['projetLibelle'])) {
-            $projet->setProjetLibelle($data['projetLibelle']);
-        }
-        if (isset($data['projetDescription'])) {
-            $projet->setProjetDescription($data['projetDescription']);
-        }
-        if (isset($data['projetReference'])) {
-            $projet->setProjetReference($data['projetReference']);
-        }
-        if (isset($data['projetDateDemarrage'])) {
-            $projet->setProjetDateDemarrage(new \DateTime($data['projetDateDemarrage']));
-        }
-        if (isset($data['projetDateAchevement'])) {
-            $projet->setProjetDateAchevement(new \DateTime($data['projetDateAchevement']));
-        }
-        if (isset($data['projetUrlFonctionnel'])) {
-            $projet->setProjetUrlFonctionnel($data['projetUrlFonctionnel']);
-        }
-        if (isset($data['projetDescriptionServiceEffectivementRendus'])) {
-            $projet->setProjetDescriptionServiceEffectivementRendus($data['projetDescriptionServiceEffectivementRendus']);
-        }
-        
+        $projet->setProjetLibelle($data['projetLibelle'] ?? $projet->getProjetLibelle());
+        $projet->setProjetDescription($data['projetDescription'] ?? $projet->getProjetDescription());
+        $projet->setProjetReference($data['projetReference'] ?? $projet->getProjetReference());
+        $projet->setProjetDateDemarrage(new \DateTime($data['projetDateDemarrage'] ?? $projet->getProjetDateDemarrage()));
+        $projet->setProjetDateAchevement(new \DateTime($data['projetDateAchevement'] ?? $projet->getProjetDateAchevement()));
+        $projet->setProjetUrlFonctionnel($data['projetUrlFonctionnel'] ?? $projet->getProjetUrlFonctionnel());
+        $projet->setProjetDescriptionServiceEffectivementRendus($data['projetDescriptionServiceEffectivementRendus'] ?? $projet->getProjetDescriptionServiceEffectivementRendus());
+    
+        // Mettre à jour le lieu
         if (isset($data['lieu_id'])) {
             $lieu = $entityManager->getRepository(Lieu::class)->find($data['lieu_id']);
             if (!$lieu) {
@@ -215,6 +210,8 @@ class ProjetController extends AbstractController
             }
             $projet->setLieu($lieu);
         }
+    
+        // Mettre à jour le client
         if (isset($data['client_id'])) {
             $client = $entityManager->getRepository(Client::class)->find($data['client_id']);
             if (!$client) {
@@ -222,14 +219,14 @@ class ProjetController extends AbstractController
             }
             $projet->setClient($client);
         }
+    
+        // Mise à jour des catégories
         if (isset($data['categories'])) {
-            // Supprimer les anciennes catégories associées au projet
-            foreach ($projet->getCategories() as $categorie) {
-                $projet->removeCategorie($categorie);
-            }
-            // Ajouter les nouvelles catégories
-            foreach ($data['categories'] as $categorieData) {
-                $categorie = $entityManager->getRepository(Categorie::class)->find($categorieData['id']);
+            // Clear existing categories
+            $projet->getCategories()->clear();
+    
+            foreach ($data['categories'] as $categorieId) {
+                $categorie = $entityManager->getRepository(Categorie::class)->find($categorieId);
                 if (!$categorie) {
                     return new JsonResponse(['message' => 'Catégorie introuvable'], Response::HTTP_NOT_FOUND);
                 }

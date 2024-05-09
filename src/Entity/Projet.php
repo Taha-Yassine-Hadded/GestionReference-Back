@@ -59,7 +59,6 @@ class Projet
     private Collection $projetPreuves;
 
     #[ORM\ManyToMany(targetEntity: Categorie::class, inversedBy: 'projets')]
-    #[Assert\NotBlank]
     private $categories;
 
     public function __construct()
@@ -99,7 +98,7 @@ class Projet
     }
 
 
-    public function getProjetDescirption(): ?string
+    public function getProjetDescription(): ?string
     {
         return $this->projetDescription;
     }

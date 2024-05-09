@@ -33,21 +33,24 @@ class AppelOffreTypeController extends AbstractController
     }
 
     #[Route('/api/getAll/appeloffre/types', name: 'api_appel_offre_types', methods: ['GET'])]
-    public function index(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
-    {
-        $this->checkToken($tokenStorage);
-        $appelOffreTypes = $entityManager->getRepository(AppelOffreType::class)->findAll();
-        $data = [];
+public function index(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
+{
+    $this->checkToken($tokenStorage);
+    
+    // Récupérer les types d'appels d'offres triés par ordre alphabétique
+    $appelOffreTypes = $entityManager->getRepository(AppelOffreType::class)->findBy([], ['appelOffreType' => 'ASC']);
+    
+    $data = [];
 
-        foreach ($appelOffreTypes as $appelOffreType) {
-            $data[] = [
-                'appelOffreTypeId' => $appelOffreType->getId(),
-                'appelOffreType' => $appelOffreType->getAppelOffreType(),
-            ];
-        }
-
-        return new JsonResponse($data, Response::HTTP_OK);
+    foreach ($appelOffreTypes as $appelOffreType) {
+        $data[] = [
+            'appelOffreTypeId' => $appelOffreType->getId(),
+            'appelOffreType' => $appelOffreType->getAppelOffreType(),
+        ];
     }
+
+    return new JsonResponse($data, Response::HTTP_OK);
+}
 
     #[Route('/api/get/appeloffre/types/{id}', name: 'api_appel_offre_type_show', methods: ['GET'])]
     public function show(AppelOffreType $appelOffreType, TokenStorageInterface $tokenStorage): JsonResponse

@@ -15,9 +15,13 @@ class UploadFile
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::BLOB)]
+    #[ORM\Column(length: 255)]
     #[Assert\NotBlank]
-    private $fichier = null;
+    private $fileName;
+
+    #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
+    private $filePath;
 
     #[ORM\ManyToOne(targetEntity: ProjetPreuve::class)]
     private ?ProjetPreuve $projetPreuve ; 
@@ -29,22 +33,35 @@ class UploadFile
         return $this->id;
     }
 
-    public function getId(): ?int
+  public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getFichier()
+    public function getFileName(): ?string
     {
-        return $this->fichier;
+        return $this->fileName;
     }
 
-    public function setFichier($fichier): static
+    public function setFileName(string $fileName): self
     {
-        $this->fichier = $fichier;
+        $this->fileName = $fileName;
 
         return $this;
     }
+
+    public function getFilePath(): ?string
+    {
+        return $this->filePath;
+    }
+
+    public function setFilePath(string $filePath): self
+    {
+        $this->filePath = $filePath;
+
+        return $this;
+    }
+
 
     public function getProjetPreuve(): ?ProjetPreuve
     {

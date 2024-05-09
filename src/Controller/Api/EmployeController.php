@@ -90,7 +90,7 @@ public function create(Request $request, EntityManagerInterface $entityManager, 
     public function getAll(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
         $this->checkToken($tokenStorage);
-        $employes = $entityManager->getRepository(Employe::class)->findAll();
+        $employes = $entityManager->getRepository(Employe::class)->findBy([], ['personneContact' => 'ASC']);
         $serializedEmployes = [];
         foreach ($employes as $employe) {
             $serializedEmployes[] = $this->serializeEmployeNom($employe);

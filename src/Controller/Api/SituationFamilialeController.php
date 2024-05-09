@@ -22,17 +22,20 @@ class SituationFamilialeController extends AbstractController
     public function index(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
         $this->checkToken($tokenStorage);
-        $situationsFamiliales = $entityManager->getRepository(SituationFamiliale::class)->findAll();
-        $data = [];
-
+        
+        // Récupérer les situations familiales triées par ordre alphabétique
+        $situationsFamiliales = $entityManager->getRepository(SituationFamiliale::class)->findBy([], ['situationFamiliale' => 'ASC']);
+        
+        // Sérialiser les situations familiales
+        $serializedSituationsFamiliales = [];
         foreach ($situationsFamiliales as $situationFamiliale) {
-            $data[] = [
+            $serializedSituationsFamiliales[] = [
                 'id' => $situationFamiliale->getId(),
                 'situationFamiliale' => $situationFamiliale->getSituationFamiliale(),
             ];
         }
-
-        return new JsonResponse($data, Response::HTTP_OK);
+    
+        return new JsonResponse($serializedSituationsFamiliales, Response::HTTP_OK);
     }
 
     #[Route('/api/get/situations-familiales/{id}', name: 'api_situation_familiale_show', methods: ['GET'])]

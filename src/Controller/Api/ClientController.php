@@ -20,18 +20,21 @@ use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 class ClientController extends AbstractController
 {
     #[Route('/api/getAll/clients', name: 'api_client_index', methods: ['GET'])]
-    public function index(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
-    {
-        $this->checkToken($tokenStorage);
-        $clients = $entityManager->getRepository(Client::class)->findAll();
-        $data = [];
+public function index(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
+{
+    $this->checkToken($tokenStorage);
+    
+    // Récupérer les clients triés par le nom de la personne de contact
+    $clients = $entityManager->getRepository(Client::class)->findBy([], ['personneContact' => 'ASC']);
+    
+    $data = [];
 
-        foreach ($clients as $client) {
-            $data[] = $this->serializeClientNom($client);
-        }
-
-        return new JsonResponse($data, Response::HTTP_OK);
+    foreach ($clients as $client) {
+        $data[] = $this->serializeClientNom($client);
     }
+
+    return new JsonResponse($data, Response::HTTP_OK);
+}
 
     #[Route('/api/get/client/{id}', name: 'api_client_show', methods: ['GET'])]
     public function show(Client $client, TokenStorageInterface $tokenStorage): JsonResponse

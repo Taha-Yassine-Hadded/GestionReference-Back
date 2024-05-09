@@ -52,24 +52,22 @@ class LieuController extends AbstractController
     public function getAll(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
         $this->checkToken($tokenStorage);
+        
+        // Récupérer les lieux triés par nom
         $lieuxRepository = $entityManager->getRepository(Lieu::class);
-        $lieux = $lieuxRepository->findAll();
-    
+        $lieux = $lieuxRepository->findBy([], ['lieuNom' => 'ASC']);
+        
         $lieuxData = [];
         foreach ($lieux as $lieu) {
             $pays = $lieu->getPays();
-            $paysId = ($pays) ? $pays->getId() : null;
             $paysNom = ($pays) ? $pays->getPaysNom() : 'Pays non spécifié';
         
             $lieuxData[] = [
                 'lieuId' => $lieu->getId(),
                 'lieuNom' => $lieu->getLieuNom(),
-                'paysId' => $paysId,
                 'paysNom' => $paysNom,
-                'message' => ($pays === null) ? 'Pays non spécifié' : null,
             ];
         }
-        
     
         return new JsonResponse($lieuxData, Response::HTTP_OK);
     }

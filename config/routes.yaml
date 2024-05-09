@@ -13,18 +13,6 @@ file_upload:
     path: /api/upload
     controller: App\Controller\Api\UploadFileController::upload
     methods: [POST]
-api_create_projet:
-    path: /api/create/projet
-    controller: 'App\Controller\Api\ProjetController::create'
-    methods: ['POST']
-get_projet_details:
-    path: /api/get/projet/{id}
-    controller: App\Controller\Api\ProjetController::getProjetDetails
-    methods: GET
-update_projet:
-    path: /api/update/projet/{id}
-    controller: App\Controller\Api\ProjetController::update
-    methods: PUT
 api_appel_offres_create:
     path: '/api/create/appel-offres'
     controller: 'App\Controller\Api\AppelOffreController::create'
@@ -83,3 +71,57 @@ api_employe_get_one_by_name:
     path: '/api/getOne/employe/{id}'
     controller: 'App\Controller\Api\EmployeController::getOneByNOM'
     methods: ['GET']
+
+api_projet_create:
+  path: /api/create/projet
+  controller: 'App\Controller\Api\ProjetController::create'
+  methods: [POST]
+
+api_projet_get_all:
+  path: /api/getAll/projets
+  methods: [GET]
+  controller: 'App\Controller\Api\ProjetController::getAll'
+
+api_projet_get_one:
+  path: /api/get/projet/{id}
+  methods: [GET]
+  controller: 'App\Controller\Api\ProjetController::getProjetDetails'
+
+api_projet_get_one_by_id:
+  path: /api/getOne/projet/{id}
+  methods: [GET]
+  controller: 'App\Controller\Api\ProjetController::getProjetOne'
+
+api_projet_delete:
+  path: /api/delete/projet/{id}
+  methods: [DELETE]
+  controller: 'App\Controller\Api\ProjetController::delete'
+
+api_projet_update:
+  path: /api/update/projet/{id}
+  methods: [PUT]
+  controller: 'App\Controller\Api\ProjetController::update'
+api_projet-employe-poste_get:
+    path: '/api/getAll/projet-employe-poste'
+    controller: 'App\Controller\Api\ProjetEmployePosteController::index'
+    methods: ['GET']
+
+api_projet-employe-poste_get_one:
+    path: '/api/getOne/projet-employe-poste/{id}'
+    controller: 'App\Controller\Api\ProjetEmployePosteController::getOne'
+    methods: ['GET']
+
+api_projet-employe-poste_create:
+    path: '/api/create/projet-employe-poste'
+    controller: 'App\Controller\Api\ProjetEmployePosteController::create'
+    methods: ['POST']
+
+api_projet-employe-poste_update:
+    path: '/api/put/projet-employe-poste/{id}'
+    controller: 'App\Controller\Api\ProjetEmployePosteController::update'
+    methods: ['PUT']
+
+api_projet-employe-poste_delete:
+    path: '/api/delete/projet-employe-poste/{id}'
+    controller: 'App\Controller\Api\ProjetEmployePosteController::delete'
+    methods: ['DELETE']

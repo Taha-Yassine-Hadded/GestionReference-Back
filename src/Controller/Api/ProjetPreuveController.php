@@ -22,16 +22,18 @@ class ProjetPreuveController extends AbstractController
     public function index(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
         $this->checkToken($tokenStorage);
-       $projetPreuves = $entityManager->getRepository(ProjetPreuve::class)->findAll();
-        $data = [];
-
+        
+        // Récupérer les preuves de projet
+        $projetPreuves = $entityManager->getRepository(ProjetPreuve::class)->findBy([], ['projetPreuveLibelle' => 'ASC']);
+        
+        // Sérialiser les preuves de projet
+        $serializedProjetPreuves = [];
         foreach ($projetPreuves as $projetPreuve) {
-            $data[] = $this->serializeProjetPreuveNom($projetPreuve);
+            $serializedProjetPreuves[] = $this->serializeProjetPreuveNom($projetPreuve);
         }
-
-        return new JsonResponse($data, Response::HTTP_OK);
+    
+        return new JsonResponse($serializedProjetPreuves, Response::HTTP_OK);
     }
-
     #[Route('/api/get/projet-preuves/{id}', name: 'api_projet_preuve_show', methods: ['GET'])]
     public function show(ProjetPreuve $projetPreuve, TokenStorageInterface $tokenStorage): JsonResponse
     {

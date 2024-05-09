@@ -97,21 +97,25 @@ class PosteController extends AbstractController
         return new JsonResponse('Poste supprimé avec succès', Response::HTTP_OK);
     }
     #[Route('/api/postes', name: 'api_poste_list', methods: ['GET'])]
-    public function list(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
-    {
-        $this->checkToken($tokenStorage);
-        $postes = $entityManager->getRepository(Poste::class)->findAll();
-
-        $data = [];
-        foreach ($postes as $poste) {
-            $data[] = [
-                'id' => $poste->getId(),
-                'posteNom' => $poste->getPosteNom(),
-            ];
-        }
-
-        return new JsonResponse($data, Response::HTTP_OK);
+public function list(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
+{
+    $this->checkToken($tokenStorage);
+    
+    // Récupérer les postes triés par nom
+    $posteRepository = $entityManager->getRepository(Poste::class);
+    $postes = $posteRepository->findBy([], ['posteNom' => 'ASC']);
+    
+    $data = [];
+    foreach ($postes as $poste) {
+        $data[] = [
+            'id' => $poste->getId(),
+            'posteNom' => $poste->getPosteNom(),
+            // Ajoutez d'autres attributs du poste si nécessaire
+        ];
     }
+
+    return new JsonResponse($data, Response::HTTP_OK);
+}
     public function checkToken(TokenStorageInterface $tokenStorage): void
     {
         // Récupérer le token d'authentification de Symfony

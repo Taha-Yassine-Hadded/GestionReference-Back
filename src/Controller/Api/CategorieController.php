@@ -33,21 +33,24 @@ class CategorieController extends AbstractController
     }
 
     #[Route('/api/getAll/categorie', name: 'api_categorie_get_all', methods: ['GET'])]
-    public function index(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
-    {
-        $this->checkToken($tokenStorage);
-        $categories = $entityManager->getRepository(Categorie::class)->findAll();
-        $data = [];
+public function index(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
+{
+    $this->checkToken($tokenStorage);
+    
+    // Récupérer les catégories triées par ordre alphabétique
+    $categories = $entityManager->getRepository(Categorie::class)->findBy([], ['categorie' => 'ASC']);
+    
+    $data = [];
 
-        foreach ($categories as $categorie) {
-            $data[] = [
-                'id_categorie' => $categorie->getId(),
-                'categorie' => $categorie->getCategorie(),
-            ];
-        }
-
-        return new JsonResponse($data, Response::HTTP_OK);
+    foreach ($categories as $categorie) {
+        $data[] = [
+            'id_categorie' => $categorie->getId(),
+            'categorie' => $categorie->getCategorie(),
+        ];
     }
+
+    return new JsonResponse($data, Response::HTTP_OK);
+}
 
     #[Route('/api/get/categorie/{id}', name: 'api_categorie_get', methods: ['GET'])]
     public function show(Categorie $categorie, TokenStorageInterface $tokenStorage): JsonResponse

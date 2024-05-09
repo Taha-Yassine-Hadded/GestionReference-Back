@@ -18,20 +18,23 @@ use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 
 class EmployeEducationController extends AbstractController
 {
-    #[Route('/api/getAll/employe-educations', name: 'api_employe_education_index', methods: ['GET'])]
-    public function index(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
-    {
-        $this->checkToken($tokenStorage);
-        $employeEducations = $entityManager->getRepository(EmployeEducation::class)->findAll();
-        $data = [];
+   #[Route('/api/getAll/employe-educations', name: 'api_employe_education_index', methods: ['GET'])]
+public function index(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
+{
+    $this->checkToken($tokenStorage);
 
-        foreach ($employeEducations as $employeEducation) {
-            $data[] = $this->serializeEmployeEducationNom($employeEducation);
-        }
+    // Récupérer les employé-éducations triées par ordre alphabétique du nom de l'employé
+    $employeEducations = $entityManager->getRepository(EmployeEducation::class)
+        ->findBy([], ['employe' => 'ASC']);
 
-        return new JsonResponse($data, Response::HTTP_OK);
+    // Sérialiser les employé-éducations
+    $serializedEmployeEducations = [];
+    foreach ($employeEducations as $employeEducation) {
+        $serializedEmployeEducations[] = $this->serializeEmployeEducationNom($employeEducation);
     }
 
+    return new JsonResponse($serializedEmployeEducations, Response::HTTP_OK);
+}
     #[Route('/api/get/employe-educations/{id}', name: 'api_employe_education_show', methods: ['GET'])]
     public function show(EmployeEducation $employeEducation, TokenStorageInterface $tokenStorage): JsonResponse
     {

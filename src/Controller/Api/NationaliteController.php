@@ -50,16 +50,19 @@ class NationaliteController extends AbstractController
     public function index(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
         $this->checkToken($tokenStorage);
-        $nationalites = $entityManager->getRepository(Nationalite::class)->findAll();
+        
+        // Récupérer les nationalités triées par libellé
+        $nationaliteRepository = $entityManager->getRepository(Nationalite::class);
+        $nationalites = $nationaliteRepository->findBy([], ['nationaliteLibelle' => 'ASC']);
+        
         $data = [];
-
         foreach ($nationalites as $nationalite) {
             $data[] = [
                 'id' => $nationalite->getId(),
                 'nationaliteLibelle' => $nationalite->getNationaliteLibelle(),
             ];
         }
-
+    
         return new JsonResponse($data, Response::HTTP_OK);
     }
    

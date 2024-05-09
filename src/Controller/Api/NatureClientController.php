@@ -38,16 +38,19 @@ class NatureClientController extends AbstractController
     public function index(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
         $this->checkToken($tokenStorage);
-        $natureClients = $entityManager->getRepository(NatureClient::class)->findAll();
+        
+        // Récupérer les natures des clients triées par nom
+        $natureClientRepository = $entityManager->getRepository(NatureClient::class);
+        $natureClients = $natureClientRepository->findBy([], ['natureClient' => 'ASC']);
+        
         $data = [];
-
         foreach ($natureClients as $natureClient) {
             $data[] = [
                 'id' => $natureClient->getId(),
                 'natureClient' => $natureClient->getNatureClient(),
             ];
         }
-
+    
         return new JsonResponse($data, Response::HTTP_OK);
     }
 

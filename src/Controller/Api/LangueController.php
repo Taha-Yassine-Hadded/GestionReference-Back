@@ -86,21 +86,23 @@ class LangueController extends AbstractController
     }
 
     #[Route('/api/getAll/langues', name: 'api_langue_list', methods: ['GET'])]
-    public function list(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
-    {
-        $this->checkToken($tokenStorage);
-        $langues = $entityManager->getRepository(Langue::class)->findAll();
-
-        $data = [];
-        foreach ($langues as $langue) {
-            $data[] = [
-                'id' => $langue->getId(),
-                'langueNom' => $langue->getLangueNom(),
-            ];
-        }
-
-        return new JsonResponse($data, Response::HTTP_OK);
+public function list(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
+{
+    $this->checkToken($tokenStorage);
+    
+    // Récupérer les langues triées par nom
+    $langues = $entityManager->getRepository(Langue::class)->findBy([], ['langueNom' => 'ASC']);
+    
+    $data = [];
+    foreach ($langues as $langue) {
+        $data[] = [
+            'id' => $langue->getId(),
+            'langueNom' => $langue->getLangueNom(),
+        ];
     }
+
+    return new JsonResponse($data, Response::HTTP_OK);
+}
     public function checkToken(TokenStorageInterface $tokenStorage): void
     {
         // Récupérer le token d'authentification de Symfony

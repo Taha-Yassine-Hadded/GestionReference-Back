@@ -49,28 +49,25 @@ class PaysController extends AbstractController
         return new JsonResponse($data, Response::HTTP_OK);
     }
     #[Route('/api/getAll/pays', name: 'api_get_all_pays', methods: ['GET'])]
-    public function getAll(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
-    {
-        $this->checkToken($tokenStorage);
-        // Récupérer tous les pays depuis le repository
-        $paysRepository = $entityManager->getRepository(Pays::class);
-        $pays = $paysRepository->findAll();
-
-        // Initialiser un tableau pour stocker les données des pays
-        $paysData = [];
-
-        // Boucler à travers chaque pays pour extraire les informations nécessaires
-        foreach ($pays as $paysItem) {
-            $paysData[] = [
-                'paysId' => $paysItem->getId(),
-                'paysNom' => $paysItem->getPaysNom(),
-                // Ajouter d'autres attributs de pays si nécessaire
-            ];
-        }
-
-        // Retourner les données des pays sous forme de réponse JSON
-        return new JsonResponse($paysData, Response::HTTP_OK);
+public function getAll(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
+{
+    $this->checkToken($tokenStorage);
+    
+    // Récupérer les pays triés par nom
+    $paysRepository = $entityManager->getRepository(Pays::class);
+    $pays = $paysRepository->findBy([], ['paysNom' => 'ASC']);
+    
+    $paysData = [];
+    foreach ($pays as $paysItem) {
+        $paysData[] = [
+            'paysId' => $paysItem->getId(),
+            'paysNom' => $paysItem->getPaysNom(),
+            // Ajoutez d'autres attributs de pays si nécessaire
+        ];
     }
+
+    return new JsonResponse($paysData, Response::HTTP_OK);
+}
  
     #[Route('/api/put/pays/{id}', name: 'api_pays_update', methods: ['PUT'])]
     public function update(Request $request, Pays $pays, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse

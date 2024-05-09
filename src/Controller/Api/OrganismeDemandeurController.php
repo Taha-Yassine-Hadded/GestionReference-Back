@@ -36,16 +36,19 @@ class OrganismeDemandeurController extends AbstractController
     public function getAll(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
         $this->checkToken($tokenStorage);
-        $organismeDemandeurs = $entityManager->getRepository(OrganismeDemandeur::class)->findAll();
+        
+        // Récupérer les organismes demandeurs triés par libellé
+        $organismeDemandeurRepository = $entityManager->getRepository(OrganismeDemandeur::class);
+        $organismeDemandeurs = $organismeDemandeurRepository->findBy([], ['organismeDemandeurLibelle' => 'ASC']);
+        
         $data = [];
-
         foreach ($organismeDemandeurs as $organismeDemandeur) {
             $data[] = [
                 'organismeDemandeurId' => $organismeDemandeur->getId(),
                 'organismeDemandeurLibelle' => $organismeDemandeur->getOrganismeDemandeurLibelle(),
             ];
         }
-
+    
         return new JsonResponse($data, Response::HTTP_OK);
     }
 
