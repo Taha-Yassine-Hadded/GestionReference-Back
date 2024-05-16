@@ -115,4 +115,26 @@ public function getAll(EntityManagerInterface $entityManager, TokenStorageInterf
         }
 
 }
+#[Route('/api/delete/pays/{id}', name: 'api_pays_delete', methods: ['DELETE'])]
+public function delete(Pays $pays, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
+{
+    $this->checkToken($tokenStorage);
+    
+    // Récupérer tous les lieux qui ont ce pays
+    $lieux = $entityManager->getRepository(Lieu::class)->findBy(['pays' => $pays]);
+
+    // Mettre à jour les références à null dans tous les lieux liés
+    foreach ($lieux as $lieu) {
+        $lieu->setPays(null);
+        $entityManager->persist($lieu);
+    }
+    $entityManager->flush();
+
+    // Supprimer le pays
+    $entityManager->remove($pays);
+    $entityManager->flush();
+
+    return new JsonResponse(['message' => 'Pays supprimé avec succès'], Response::HTTP_OK);
+}
+
 }

@@ -5,6 +5,7 @@ namespace App\Controller\Api;
 use App\Controller\Api\UserController;
 use App\Entity\AppelOffre;
 use App\Entity\AppelOffreType;
+use App\Entity\Lieu;
 use App\Entity\MoyenLivraison;
 use App\Entity\OrganismeDemandeur;
 use App\Repository\AppelOffreRepository;
@@ -28,6 +29,7 @@ class AppelOffreController extends AbstractController
     public function create(Request $request, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
         $this->checkToken($tokenStorage);
+
         // Récupérer les données JSON de la requête
         $data = json_decode($request->getContent(), true);
 
@@ -35,20 +37,21 @@ class AppelOffreController extends AbstractController
         $appelOffre = new AppelOffre();
 
         // Remplir les propriétés de l'entité avec les données reçues
-        $appelOffre->setAppelOffreDevis($data['appelOffreDevis']);
-        $appelOffre->setAppelOffreObjet($data['appelOffreObjet']);
-        $appelOffre->setAppelOffreDateRemise(new \DateTime($data['appelOffreDateRemise']));
-        $appelOffre->setAppelOffreRetire($data['appelOffreRetire']);
-        $appelOffre->setAppelOffreParticipation($data['appelOffreParticipation']);
-        $appelOffre->setAppelOffreEtat($data['appelOffreEtat']);
+        $appelOffre->setAppelOffreDevis($data['appelOffreDevis'] ?? null);
+        $appelOffre->setAppelOffreObjet($data['appelOffreObjet'] ?? null);
+        $appelOffre->setAppelOffreDateRemise(isset($data['appelOffreDateRemise']) ? new \DateTime($data['appelOffreDateRemise']) : null);
+        $appelOffre->setAppelOffreRetire($data['appelOffreRetire'] ?? null);
+        $appelOffre->setAppelOffreParticipation($data['appelOffreParticipation'] ?? null);
+        $appelOffre->setAppelOffreEtat($data['appelOffreEtat'] ?? null);
 
         // Récupérer les entités liées à partir des identifiants fournis
-        $appelOffreType = $entityManager->getRepository(AppelOffreType::class)->find($data['appelOffreTypeId']);
-        $moyenLivraison = $entityManager->getRepository(MoyenLivraison::class)->find($data['moyenLivraisonId']);
-        $organismeDemandeur = $entityManager->getRepository(OrganismeDemandeur::class)->find($data['organismeDemandeurId']);
+        $appelOffreType = $entityManager->getRepository(AppelOffreType::class)->find($data['appelOffreTypeId'] ?? null);
+        $moyenLivraison = $entityManager->getRepository(MoyenLivraison::class)->find($data['moyenLivraisonId'] ?? null);
+        $organismeDemandeur = $entityManager->getRepository(OrganismeDemandeur::class)->find($data['organismeDemandeurId'] ?? null);
+        $lieu = $entityManager->getRepository(Lieu::class)->find($data['lieuId'] ?? null);
 
         // Vérifier si les entités liées existent
-        if (!$appelOffreType || !$moyenLivraison || !$organismeDemandeur) {
+        if (!$appelOffreType || !$moyenLivraison || !$organismeDemandeur || !$lieu) {
             return new JsonResponse(['message' => 'Une ou plusieurs entités liées n\'existent pas.'], Response::HTTP_BAD_REQUEST);
         }
 
@@ -56,6 +59,7 @@ class AppelOffreController extends AbstractController
         $appelOffre->setAppelOffreType($appelOffreType);
         $appelOffre->setMoyenLivraison($moyenLivraison);
         $appelOffre->setOrganismeDemandeur($organismeDemandeur);
+        $appelOffre->setLieu($lieu);
 
         // Persist the entity
         $entityManager->persist($appelOffre);
@@ -64,6 +68,9 @@ class AppelOffreController extends AbstractController
         // Retourner une réponse JSON avec un message de succès
         return new JsonResponse(['message' => 'Appel d\'offre créé avec succès'], Response::HTTP_CREATED);
     }
+
+
+  
 
     #[Route('/api/get/appel-offres/{id}', name: 'api_appel_offres_get', methods: ['GET'])]
     public function getOne(int $id, AppelOffreRepository $appelOffreRepository, Request $request, TokenStorageInterface $tokenStorage): JsonResponse
@@ -108,12 +115,13 @@ class AppelOffreController extends AbstractController
         }
     
         // Récupérer les entités liées à partir des identifiants fournis
-        $appelOffreType = $entityManager->getRepository(AppelOffreType::class)->find($data['appelOffreTypeId']);
-        $moyenLivraison = $entityManager->getRepository(MoyenLivraison::class)->find($data['moyenLivraisonId']);
-        $organismeDemandeur = $entityManager->getRepository(OrganismeDemandeur::class)->find($data['organismeDemandeurId']);
+        $appelOffreType = $entityManager->getRepository(AppelOffreType::class)->find($data['appelOffreTypeId'] ?? null);
+        $moyenLivraison = $entityManager->getRepository(MoyenLivraison::class)->find($data['moyenLivraisonId'] ?? null);
+        $organismeDemandeur = $entityManager->getRepository(OrganismeDemandeur::class)->find($data['organismeDemandeurId'] ?? null);
+        $lieu = $entityManager->getRepository(Lieu::class)->find($data['lieuId'] ?? null);
     
         // Vérifier si les entités liées existent
-        if (!$appelOffreType || !$moyenLivraison || !$organismeDemandeur) {
+        if (!$appelOffreType || !$moyenLivraison || !$organismeDemandeur || !$lieu) {
             return new JsonResponse(['message' => 'Une ou plusieurs entités liées n\'existent pas.'], Response::HTTP_BAD_REQUEST);
         }
     
@@ -127,13 +135,13 @@ class AppelOffreController extends AbstractController
         $appelOffre->setAppelOffreType($appelOffreType);
         $appelOffre->setMoyenLivraison($moyenLivraison);
         $appelOffre->setOrganismeDemandeur($organismeDemandeur);
-        
+        $appelOffre->setLieu($lieu);
+    
         // Enregistrer les changements dans la base de données
         $entityManager->flush();
     
         return new JsonResponse(['message' => 'Appel d\'offre mis à jour avec succès'], Response::HTTP_OK);
     }
-    
 
     #[Route('/api/delete/appel-offres/{id}', name: 'api_appel_offres_delete', methods: ['DELETE'])]
     public function delete(int $id, EntityManagerInterface $entityManager, AppelOffreRepository $appelOffreRepository, TokenStorageInterface $tokenStorage): JsonResponse
@@ -188,6 +196,7 @@ class AppelOffreController extends AbstractController
             'appelOffreTypeId' => $appelOffre->getAppelOffreType() ? $appelOffre->getAppelOffreType()->getId() : null,
             'moyenLivraisonId' => $appelOffre->getMoyenLivraison() ? $appelOffre->getMoyenLivraison()->getId() : null,
             'organismeDemandeurId' => $appelOffre->getOrganismeDemandeur() ? $appelOffre->getOrganismeDemandeur()->getId() : null,
+            'lieuId' => $appelOffre->getLieu() ?$appelOffre->getLieu()->getId() : null, 
             // Ajoutez d'autres attributs de l'entité que vous souhaitez inclure dans la réponse JSON
         ];
     }
@@ -209,7 +218,9 @@ class AppelOffreController extends AbstractController
             'appelOffreTypeLibelle' => $appelOffre->getAppelOffreType() ? $appelOffre->getAppelOffreType()->getAppelOffreType(): null,
         'moyenLivraisonLibelle' => $appelOffre->getMoyenLivraison() ? $appelOffre->getMoyenLivraison()->getMoyenLivraison() : null,
         'organismeDemandeurLibelle' => $appelOffre->getOrganismeDemandeur() ? $appelOffre->getOrganismeDemandeur()->getOrganismeDemandeurLibelle() : null,
-            // Ajoutez d'autres attributs de l'entité que vous souhaitez inclure dans la réponse JSON
+        'lieu' => $appelOffre->getLieu() ?$appelOffre->getLieu()->getLieuNom() : null,
+       
+        // Ajoutez d'autres attributs de l'entité que vous souhaitez inclure dans la réponse JSON
         ];
     }
     public function checkToken(TokenStorageInterface $tokenStorage): void

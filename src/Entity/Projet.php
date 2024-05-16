@@ -3,12 +3,10 @@
 namespace App\Entity;
 
 use App\Repository\ProjetRepository;
-use Doctrine\DBAL\Types\Types;
-use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
-use Symfony\Component\Validator\Constraints as Assert;
 use Doctrine\Common\Collections\Collection;
-
+use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ProjetRepository::class)]
 class Projet
@@ -23,8 +21,8 @@ class Projet
     private ?string $projetLibelle = null;
 
     #[ORM\Column(type: 'text')]
- #[Assert\NotBlank]
-   private ?string $projetDescription = null;
+    #[Assert\NotBlank]
+    private ?string $projetDescription = null;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank]
@@ -42,7 +40,7 @@ class Projet
     #[Assert\NotBlank]
     private ?string $projetUrlFonctionnel = null;
 
-  #[ORM\Column(type: 'text')]
+    #[ORM\Column(type: 'text')]
     #[Assert\NotBlank]
     private ?string $projetDescriptionServiceEffectivementRendus = null;
 
@@ -50,35 +48,11 @@ class Projet
     private ?Lieu $lieu;
 
     #[ORM\ManyToOne(targetEntity: Client::class)]
-    private ?Client $client; 
+    private ?Client $client;
 
-    #[ORM\OneToMany(targetEntity: ProjetEmployePoste::class, mappedBy: 'projet', cascade: ["persist","remove"])]
-    private Collection $projetsEmployePostes;
-
-    #[ORM\OneToMany(targetEntity: ProjetPreuve::class, mappedBy: "projet", cascade: ["persist","remove"])]
-    private Collection $projetPreuves;
-
-    #[ORM\ManyToMany(targetEntity: Categorie::class, inversedBy: 'projets')]
-    private $categories;
-
-    public function __construct()
-    {
-        $this->projetPreuves = new ArrayCollection();
-       $this->categories = new ArrayCollection();
-       $this->projetsEmployePostes = new ArrayCollection();
-       $this->employes = new ArrayCollection();
     
-    
-    }
-
-    public function clearCategories(): void
-    {
-        $this->categories->clear();
-    }
-    public function __toString()
-    {
-        return $this->id;
-    }
+    #[ORM\ManyToOne(targetEntity: Categorie::class)]
+    private ?Categorie $categorie;
 
     public function getId(): ?int
     {
@@ -90,32 +64,31 @@ class Projet
         return $this->projetLibelle;
     }
 
-    public function setProjetLibelle(string $projetLibelle): static
+    public function setProjetLibelle(string $projetLibelle): self
     {
         $this->projetLibelle = $projetLibelle;
 
         return $this;
     }
 
-
     public function getProjetDescription(): ?string
     {
         return $this->projetDescription;
     }
-    
+
     public function setProjetDescription(?string $projetDescription): self
     {
         $this->projetDescription = $projetDescription;
-    
+
         return $this;
     }
-    
+
     public function getProjetReference(): ?string
     {
         return $this->projetReference;
     }
 
-    public function setProjetReference(string $projetReference): static
+    public function setProjetReference(string $projetReference): self
     {
         $this->projetReference = $projetReference;
 
@@ -127,7 +100,7 @@ class Projet
         return $this->projetDateDemarrage;
     }
 
-    public function setProjetDateDemarrage(\DateTimeInterface $projetDateDemarrage): static
+    public function setProjetDateDemarrage(\DateTimeInterface $projetDateDemarrage): self
     {
         $this->projetDateDemarrage = $projetDateDemarrage;
 
@@ -139,7 +112,7 @@ class Projet
         return $this->projetDateAchevement;
     }
 
-    public function setProjetDateAchevement(\DateTimeInterface $projetDateAchevement): static
+    public function setProjetDateAchevement(\DateTimeInterface $projetDateAchevement): self
     {
         $this->projetDateAchevement = $projetDateAchevement;
 
@@ -151,7 +124,7 @@ class Projet
         return $this->projetUrlFonctionnel;
     }
 
-    public function setProjetUrlFonctionnel(string $projetUrlFonctionnel): static
+    public function setProjetUrlFonctionnel(string $projetUrlFonctionnel): self
     {
         $this->projetUrlFonctionnel = $projetUrlFonctionnel;
 
@@ -162,42 +135,10 @@ class Projet
     {
         return $this->projetDescriptionServiceEffectivementRendus;
     }
-    
 
-    public function setProjetDescriptionServiceEffectivementRendus(string $projetDescriptionServiceEffectivementRendus): static
+    public function setProjetDescriptionServiceEffectivementRendus(string $projetDescriptionServiceEffectivementRendus): self
     {
         $this->projetDescriptionServiceEffectivementRendus = $projetDescriptionServiceEffectivementRendus;
-
-        return $this;
-    }
-
-    // Méthode pour obtenir les projetsEmployePostes
-    public function getProjetsEmployePostes(): Collection
-    {
-        return $this->projetsEmployePostes;
-    }
-
-    // Méthode pour ajouter un projetEmployePoste à la collection
-    public function addProjetEmployePoste(ProjetEmployePoste $projetEmployePoste): self
-    {
-        if (!$this->projetsEmployePostes->contains($projetEmployePoste)) {
-            $this->projetsEmployePostes[] = $projetEmployePoste;
-            $projetEmployePoste->setProjet($this); // Assurez-vous que le projet est défini pour le projetEmployePoste ajouté
-        }
-
-        return $this;
-    }
-
-    // Méthode pour retirer un projetEmployePoste de la collection
-    public function removeProjetEmployePoste(ProjetEmployePoste $projetEmployePoste): self
-    {
-        if ($this->projetsEmployePostes->contains($projetEmployePoste)) {
-            $this->projetsEmployePostes->removeElement($projetEmployePoste);
-            // Mise à jour de la relation de ProjetEmployePoste avec le projet à NULL lorsqu'il est retiré
-            if ($projetEmployePoste->getProjet() === $this) {
-                $projetEmployePoste->setProjet(null);
-            }
-        }
 
         return $this;
     }
@@ -207,12 +148,13 @@ class Projet
         return $this->lieu;
     }
 
-    public function setLieu(?Lieu $lieu): static
+    public function setLieu(?Lieu $lieu): self
     {
         $this->lieu = $lieu;
 
         return $this;
     }
+
     public function getClient(): ?Client
     {
         return $this->client;
@@ -224,74 +166,16 @@ class Projet
 
         return $this;
     }
-    public function addProjetPreuve(ProjetPreuve $projetPreuve): self
-    {
-        if (!$this->projetPreuves->contains($projetPreuve)) {
-            $this->projetPreuves[] = $projetPreuve;
-            $projetPreuve->setProjet($this);
-        }
 
-        return $this;
+    
+    public function getCategorie(): ?Categorie
+    {
+        return $this->categorie;
     }
 
-    public function removeProjetPreuve(ProjetPreuve $projetPreuve): self
+    public function setCategorie(?Categorie $categorie): self
     {
-        if ($this->projetPreuves->removeElement($projetPreuve)) {
-            // set the owning side to null (unless already changed)
-            if ($projetPreuve->getProjet() === $this) {
-                $projetPreuve->setProjet(null);
-            }
-        }
-
-        return $this;
-    }
-      /**
-     * @return Collection|Employe[]
-     */
-    public function getEmployes(): Collection
-    {
-        return $this->employes;
-    }
-
-    public function addEmploye(Employe $employe): self
-    {
-        if (!$this->employes->contains($employe)) {
-            $this->employes[] = $employe;
-            $employe->addProjet($this);
-        }
-
-        return $this;
-    }
-
-    public function removeEmploye(Employe $employe): self
-    {
-        if ($this->employes->contains($employe)) {
-            $this->employes->removeElement($employe);
-            $employe->removeProjet($this);
-        }
-
-        return $this;
-    }
-      /**
-     * @return Collection|Categorie[]
-     */
-    public function getCategories(): Collection
-    {
-        return $this->categories;
-    }
-
-    public function addCategorie(Categorie $categorie): self
-    {
-        if (!$this->categories->contains($categorie)) {
-            $this->categories[] = $categorie;
-        }
-
-        return $this;
-    }
-
-    public function removeCategorie(Categorie $categorie): self
-    {
-        $this->categories->removeElement($categorie);
+        $this->categorie = $categorie;
 
         return $this;
     }

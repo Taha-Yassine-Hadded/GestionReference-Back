@@ -28,7 +28,7 @@ class UploadFileController extends AbstractController
     public function upload(Request $request): Response
     {
         $uploadedFile = $request->files->get('file');
-        $idPreuveProjet = $request->request->get('idPreuveProjet'); // Récupérer l'ID de la preuve du projet depuis la requête
+        $idPreuveProjet = $request->request->get('projetPreuveId'); // Récupérer l'ID de la preuve du projet depuis la requête
     
         if (!$uploadedFile || !$idPreuveProjet) {
             return $this->json(['error' => 'Paramètres manquants'], 400);

@@ -115,7 +115,7 @@ public function userCreate(Request $request): Response
  
 
         // Retourner le jeton JWT et le nom d'utilisateur dans la réponse
-        return new JsonResponse(['token' => $token, 'username' => $user->getUsername()]);
+        return new JsonResponse(['token' => $token, 'username' => $user->getUsername(), 'role' =>  $user->getRoles()]);
     }
 
     #[Route('api/logout', name: 'logout', methods: ['POST'])]

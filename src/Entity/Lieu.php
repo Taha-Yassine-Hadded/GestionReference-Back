@@ -3,25 +3,23 @@
 namespace App\Entity;
 
 use App\Repository\LieuRepository;
-use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
-use Doctrine\DBAL\Types\Types;
 
 #[ORM\Entity(repositoryClass: LieuRepository::class)]
 class Lieu
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank]
     private ?string $lieuNom = null;
 
-    
     #[ORM\ManyToOne(targetEntity: Pays::class)]
     private ?Pays $pays = null;
 
@@ -33,22 +31,18 @@ class Lieu
     {
         $this->projets = new ArrayCollection();
     }
- 
-    public function __toString()
-    {
-        return $this->id;
-    }
 
     public function getId(): ?int
     {
         return $this->id;
     }
+
     public function getLieuNom(): ?string
     {
         return $this->lieuNom;
     }
 
-    public function setLieuNom(string $lieuNom): static
+    public function setLieuNom(string $lieuNom): self
     {
         $this->lieuNom = $lieuNom;
 
@@ -60,13 +54,14 @@ class Lieu
         return $this->pays;
     }
 
-    public function setPays(?Pays $pays): static
+    public function setPays(?Pays $pays): self
     {
         $this->pays = $pays;
 
         return $this;
     }
-     /**
+
+    /**
      * @return Collection|Projet[]
      */
     public function getProjets(): Collection

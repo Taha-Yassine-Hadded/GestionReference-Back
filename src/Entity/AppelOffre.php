@@ -51,6 +51,10 @@ class AppelOffre
     #[ORM\JoinColumn(nullable: true)]
     private ?MoyenLivraison $moyenLivraison;
     
+    #[ORM\ManyToOne(targetEntity: Lieu::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Lieu $lieu;
+
     #[ORM\ManyToOne(targetEntity: OrganismeDemandeur::class)]
     #[ORM\JoinColumn(nullable: true)]
     private ?OrganismeDemandeur $organismeDemandeur;
@@ -167,7 +171,17 @@ class AppelOffre
     
         return $this;
     }
-    
+    public function getLieu(): ?Lieu
+    {
+        return $this->lieu;
+    }
+
+    public function setLieu(?Lieu $lieu): self
+    {
+        $this->lieu = $lieu;
+
+        return $this;
+    }
 
     public function getOrganismeDemandeur(): ?OrganismeDemandeur
     {

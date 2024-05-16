@@ -3,19 +3,18 @@
 namespace App\Entity;
 
 use App\Repository\ClientRepository;
-use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
-use Doctrine\DBAL\Types\Types;
 
 #[ORM\Entity(repositoryClass: ClientRepository::class)]
 class Client
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id ;
+    #[ORM\Column(type: 'integer')]
+    private ?int $id;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank]
@@ -29,9 +28,9 @@ class Client
     #[Assert\NotBlank]
     private ?string $clientAdresse = null;
 
-    #[ORM\Column(length: 20)] // Changer la longueur selon les besoins
+    #[ORM\Column(length: 20)]
     #[Assert\NotBlank]
-    #[Assert\Regex('/^\d{8,}$/')] // Au moins 10 chiffres
+    #[Assert\Regex('/^\d{8,}$/')]
     private ?string $clientTelephone = null;
 
     #[ORM\Column(length: 255)]
@@ -44,31 +43,24 @@ class Client
 
     #[ORM\ManyToOne(targetEntity: NatureClient::class)]
     #[Assert\NotBlank]
-    private ?NatureClient $natureClient; 
-
-  
+    private ?NatureClient $natureClient;
 
     public function __construct()
     {
         $this->projets = new ArrayCollection();
-    }
-    public function __toString()
-    {
-        return $this->id;
     }
 
     public function getId(): ?int
     {
         return $this->id;
     }
- 
 
     public function getPersonneContact(): ?string
     {
         return $this->personneContact;
     }
 
-    public function setPersonneContact(string $personneContact): static
+    public function setPersonneContact(string $personneContact): self
     {
         $this->personneContact = $personneContact;
 
@@ -80,7 +72,7 @@ class Client
         return $this->clientRaisonSociale;
     }
 
-    public function setClientRaisonSociale(string $clientRaisonSociale): static
+    public function setClientRaisonSociale(string $clientRaisonSociale): self
     {
         $this->clientRaisonSociale = $clientRaisonSociale;
 
@@ -92,7 +84,7 @@ class Client
         return $this->clientAdresse;
     }
 
-    public function setClientAdresse(string $clientAdresse): static
+    public function setClientAdresse(string $clientAdresse): self
     {
         $this->clientAdresse = $clientAdresse;
 
@@ -104,7 +96,7 @@ class Client
         return $this->clientTelephone;
     }
 
-    public function setClientTelephone(string $clientTelephone): static
+    public function setClientTelephone(string $clientTelephone): self
     {
         $this->clientTelephone = $clientTelephone;
 
@@ -116,13 +108,14 @@ class Client
         return $this->clientEmail;
     }
 
-    public function setClientEmail(string $clientEmail): static
+    public function setClientEmail(string $clientEmail): self
     {
         $this->clientEmail = $clientEmail;
 
         return $this;
     }
-     /**
+
+    /**
      * @return Collection|Projet[]
      */
     public function getProjets(): Collection
@@ -151,6 +144,7 @@ class Client
 
         return $this;
     }
+
     public function getNatureClient(): ?NatureClient
     {
         return $this->natureClient;

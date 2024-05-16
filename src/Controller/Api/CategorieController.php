@@ -44,8 +44,8 @@ public function index(EntityManagerInterface $entityManager, TokenStorageInterfa
 
     foreach ($categories as $categorie) {
         $data[] = [
-            'id_categorie' => $categorie->getId(),
-            'categorie' => $categorie->getCategorie(),
+            'categorieId' => $categorie->getId(),
+            'categorie' => $categorie->getCategorieNom(),
         ];
     }
 
@@ -57,8 +57,8 @@ public function index(EntityManagerInterface $entityManager, TokenStorageInterfa
     {
         $this->checkToken($tokenStorage);
         $data = [
-            'id_categorie' => $categorie->getId(),
-            'categorie' => $categorie->getCategorie(),
+            'categorieId' => $categorie->getId(),
+            'categorie' => $categorie->getCategorieNom(),
         ];
 
         return new JsonResponse($data, Response::HTTP_OK);

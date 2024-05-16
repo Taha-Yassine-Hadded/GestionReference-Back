@@ -125,3 +125,33 @@ api_projet-employe-poste_delete:
     path: '/api/delete/projet-employe-poste/{id}'
     controller: 'App\Controller\Api\ProjetEmployePosteController::delete'
     methods: ['DELETE']
+public_images:
+    path: /images/{imageName}
+    controller: App\Controller\Api\RapportController::serveImageAction
+app_rapport_id:
+    path: /rapport/{id}
+    controller: 'App\Controller\Api\RapportController::index'
+    requirements:
+        id: '\d+' # Ce requirement permet de s'assurer que l'ID est un nombre entier
+    methods: ['GET']
+
+
+api_statistics_employees:
+    path: /api/statistics/employees
+    controller: App\Controller\Api\StatstiqueController::getEmployeesStatistics
+    methods: GET
+
+api_statistics_projects:
+    path: /api/statistics/projects
+    controller: App\Controller\Api\StatstiqueController::getProjectsStatistics
+    methods: GET
+
+api_statistics_clients:
+    path: /api/statistics/clients
+    controller: App\Controller\Api\StatstiqueController::getClientsStatistics
+    methods: GET
+
+api_statistics_appesl_offres:
+    path: /api/statistics/AppeslOffres
+    controller: App\Controller\Api\StatstiqueController::getAppeslOffresStatistics
+    methods: GET

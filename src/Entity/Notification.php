@@ -31,9 +31,7 @@ class Notification
     #[ORM\ManyToOne(targetEntity: AppelOffre::class, cascade: ["persist","remove"])]
     private ?AppelOffre $appelOffre = null;
 
-    #[ORM\OneToMany(targetEntity: UserNotification::class, mappedBy: 'notification', cascade: ["persist","remove"])]
-    private Collection $userNotifications;
-    
+ 
 
     public function __construct()
     {
@@ -87,33 +85,5 @@ public function setRead(bool $read): self
     $this->read = $read;
     return $this;
 }
-/**
-     * @return Collection|UserNotification[]
-     */
-    public function getUserNotifications(): Collection
-    {
-        return $this->userNotifications;
-    }
 
-    public function addUserNotification(UserNotification $userNotification): self
-    {
-        if (!$this->userNotifications->contains($userNotification)) {
-            $this->userNotifications[] = $userNotification;
-            $userNotification->setUser($this);
-        }
-
-        return $this;
-    }
-
-    public function removeUserNotification(UserNotification $userNotification): self
-    {
-        if ($this->userNotifications->removeElement($userNotification)) {
-            // set the owning side to null (unless already changed)
-            if ($userNotification->getUser() === $this) {
-                $userNotification->setUser(null);
-            }
-        }
-
-        return $this;
-    }
 }

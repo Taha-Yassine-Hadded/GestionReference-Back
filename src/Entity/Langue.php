@@ -20,6 +20,7 @@ class Langue
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank]
     private ?string $langueNom = null;
+    
     public function __construct()
     {
         $this->employes = new ArrayCollection();

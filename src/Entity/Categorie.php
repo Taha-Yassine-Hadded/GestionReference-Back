@@ -3,34 +3,29 @@
 namespace App\Entity;
 
 use App\Repository\CategorieRepository;
-use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
-use Doctrine\DBAL\Types\Types;
 
 #[ORM\Entity(repositoryClass: CategorieRepository::class)]
 class Categorie
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id ;
+    #[ORM\Column(type: 'integer')]
+    private ?int $id;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank]
-    private ?string $categorie ;
+    private ?string $categorie;
 
+    #[ORM\OneToMany(targetEntity: Projet::class, mappedBy: "client")]
+    private $projets;
 
- public function __construct()
+    public function __construct()
     {
         $this->projets = new ArrayCollection();
-    }
-
-
-    public function __toString()
-    {
-        return $this->id;
     }
 
     public function getId(): ?int
@@ -38,18 +33,20 @@ class Categorie
         return $this->id;
     }
 
-    public function getCategorie(): ?string
+    public function getCategorieNom(): ?string
     {
         return $this->categorie;
     }
 
-    public function setCategorie(string $categorie): static
+    public function setCategorie(string $categorie): self
     {
         $this->categorie = $categorie;
 
         return $this;
     }
-      /**
+
+  
+    /**
      * @return Collection|Projet[]
      */
     public function getProjets(): Collection
@@ -61,6 +58,7 @@ class Categorie
     {
         if (!$this->projets->contains($projet)) {
             $this->projets[] = $projet;
+            $projet->setClient($this);
         }
 
         return $this;
@@ -68,7 +66,33 @@ class Categorie
 
     public function removeProjet(Projet $projet): self
     {
-        $this->projets->removeElement($projet);
+        if ($this->projets->removeElement($projet)) {
+            // set the owning side to null (unless already changed)
+            if ($projet->getClient() === $this) {
+                $projet->setClient(null);
+            }
+        }
+
+        return $this;
+    }
+    public function addCategorie(ProjetCategorie $categorie): self
+    {
+        if (!$this->categorie->contains($categorie)) {
+            $this->categories[] = $categorie;
+            $categorie->setProjet($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCategorie(ProjetCategorie $categorie): self
+    {
+        if ($this->langues->removeElement($categorie)) {
+            // set the owning side to null (unless already changed)
+            if ($langue->getProjet() === $this) {
+                $langue->setProjet(null);
+            }
+        }
 
         return $this;
     }
