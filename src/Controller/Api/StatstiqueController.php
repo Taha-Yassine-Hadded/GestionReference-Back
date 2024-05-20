@@ -58,11 +58,12 @@ class StatstiqueController extends AbstractController
 
         return new JsonResponse(['totalClients' => $totalClients]);
     }
-    #[Route('/api/statistics/AppeslOffres', name: 'api_statistics_clients')]
-    public function getAppeslOffresStatistics(): JsonResponse
-    {
-        $totalAppeslOffres = $this->appelOffreRepository->count([]);
+    #[Route('/api/statistics/AppeslOffres', name: 'api_statistics_appels_offres')]
+public function getAppelsOffresStatistics(): JsonResponse
+{
+    $totalAppeslOffres = $this->appelOffreRepository->count([]);
 
-        return new JsonResponse(['totalAppeslOffres' => $totalAppeslOffres]);
-    }
+    return new JsonResponse(['totalAppeslOffres' => $totalAppeslOffres]);
+}
+
 }

@@ -196,7 +196,28 @@ public function userCreate(Request $request): Response
         // Répondre avec un message de succès
         return new JsonResponse(['message' => 'Un email de réinitialisation de mot de passe a été envoyé à votre adresse email']);
     }
+ #[Route('/api/profile', name: 'api_profile', methods: ['GET'])]
+    public function profile(Security $security): Response
+    {
+        // Récupérer l'utilisateur connecté
+        $user = $security->getUser();
 
+        // Vérifier si un utilisateur est connecté
+        if (!$user) {
+            return new JsonResponse(['error' => 'No user is logged in'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        // Récupérer les informations de l'utilisateur
+        $userData = [
+            'id' => $user->getId(),
+            'email' => $user->getEmail(),
+            'username' => $user->getUsername(),
+            // Ajoutez d'autres informations de profil si nécessaire
+        ];
+
+        // Retourner les informations sous forme de réponse JSON
+        return new JsonResponse($userData);
+    }
 public function checkToken(TokenStorageInterface $tokenStorage): void
     {
         // Récupérer le token d'authentification de Symfony

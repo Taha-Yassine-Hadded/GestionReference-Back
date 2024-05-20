@@ -3,13 +3,7 @@
 namespace App\Controller\Api;
 
 use App\Entity\AppelOffre;
-use App\Entity\AppelOffreType;
-use App\Entity\MoyenLivraison;
-use App\Entity\OrganismeDemandeur;
-use App\Repository\AppelOffreRepository;
 use App\Entity\Notification;
-use App\Entity\UserNotification;
-use App\Entity\User;
 use App\Repository\NotificationRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -17,15 +11,12 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
-use DoctrineTrait;
 
 class NotificationController extends AbstractController
 {
     private $entityManager;
- 
 
     public function __construct(EntityManagerInterface $entityManager)
     {
@@ -40,8 +31,8 @@ class NotificationController extends AbstractController
         // Supprimer toutes les anciennes notifications
         $this->entityManager->getRepository(Notification::class)->createQueryBuilder('n')->delete()->getQuery()->execute();
     
-        // Récupérer la date actuelle
-        $dateActuelle = new \DateTime();
+        // Récupérer la date actuelle en utilisant le fuseau horaire de la Tunisie
+        $dateActuelle = new \DateTime('now', new \DateTimeZone('Africa/Tunis'));
     
         // Récupérer tous les AppelOffres
         $appelOffres = $this->entityManager->getRepository(AppelOffre::class)->findAll();
@@ -50,11 +41,22 @@ class NotificationController extends AbstractController
         $affectedAppelOffresIds = [];
     
         foreach ($appelOffres as $appelOffre) {
+            // Vérifier si la participation est égale à 1
+            if ($appelOffre->getAppelOffreParticipation() !== 1) {
+                continue;
+            }
+
+            // Convertir la date de remise en utilisant le fuseau horaire de la Tunisie
+            $appelOffreDateRemise = $appelOffre->getAppelOffreDateRemise();
+            if ($appelOffreDateRemise) {
+                $appelOffreDateRemise->setTimezone(new \DateTimeZone('Africa/Tunis'));
+            }
+            
             // Vérifier si la date d'achèvement est dans les 10 jours à partir de la date actuelle
-            $limiteNotification = new \DateTime('+10 days');
-            if ($appelOffre->getAppelOffreDateRemise() <= $limiteNotification && $appelOffre->getAppelOffreDateRemise() > $dateActuelle) {
+            $limiteNotification = (clone $dateActuelle)->add(new \DateInterval('P10D'));
+            if ($appelOffreDateRemise && $appelOffreDateRemise <= $limiteNotification && $appelOffreDateRemise > $dateActuelle) {
                 // Calculer la différence entre la date d'achèvement et la date actuelle
-                $diff = date_diff($dateActuelle, $appelOffre->getAppelOffreDateRemise());
+                $diff = date_diff($dateActuelle, $appelOffreDateRemise);
                 $joursRestants = $diff->days;
     
                 // Construire le message de la notification avec le nombre de jours restants
@@ -63,7 +65,7 @@ class NotificationController extends AbstractController
                 // Créer une nouvelle notification
                 $notification = new Notification();
                 $notification->setMessage($message);
-                $notification->setDateCreation(new \DateTime()); // Définir la date de création
+                $notification->setDateCreation(new \DateTime('now', new \DateTimeZone('Africa/Tunis'))); // Définir la date de création
                 $notification->setAppelOffre($appelOffre);
     
                 // Enregistrer la notification en base de données
@@ -116,16 +118,13 @@ class NotificationController extends AbstractController
                     'dateRemise' => $notification->getAppelOffre()->getAppelOffreDateRemise() ? $notification->getAppelOffre()->getAppelOffreDateRemise()->format('Y-m-d') : null,
                     // Ajoutez d'autres propriétés de l'appel d'offre si nécessaire
                 ],
-                // Ajoutez d'autres propriétés de notification si nécessaire
+                
             ];
         }
 
         // Retourner les notifications au format JSON
         return new JsonResponse($notificationsArray);
     }
-    
-
-
 
     public function checkToken(TokenStorageInterface $tokenStorage): void
     {
@@ -136,6 +135,5 @@ class NotificationController extends AbstractController
         if (!$token instanceof TokenInterface) {
             throw new AccessDeniedHttpException('Token d\'authentification manquant ou invalide');
         }
-
-}
+    }
 }

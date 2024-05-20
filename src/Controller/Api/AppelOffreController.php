@@ -5,7 +5,7 @@ namespace App\Controller\Api;
 use App\Controller\Api\UserController;
 use App\Entity\AppelOffre;
 use App\Entity\AppelOffreType;
-use App\Entity\Lieu;
+use App\Entity\Pays;
 use App\Entity\MoyenLivraison;
 use App\Entity\OrganismeDemandeur;
 use App\Repository\AppelOffreRepository;
@@ -48,10 +48,10 @@ class AppelOffreController extends AbstractController
         $appelOffreType = $entityManager->getRepository(AppelOffreType::class)->find($data['appelOffreTypeId'] ?? null);
         $moyenLivraison = $entityManager->getRepository(MoyenLivraison::class)->find($data['moyenLivraisonId'] ?? null);
         $organismeDemandeur = $entityManager->getRepository(OrganismeDemandeur::class)->find($data['organismeDemandeurId'] ?? null);
-        $lieu = $entityManager->getRepository(Lieu::class)->find($data['lieuId'] ?? null);
+        $pays = $entityManager->getRepository(Pays::class)->find($data['paysId'] ?? null);
 
         // Vérifier si les entités liées existent
-        if (!$appelOffreType || !$moyenLivraison || !$organismeDemandeur || !$lieu) {
+        if (!$appelOffreType || !$moyenLivraison || !$organismeDemandeur || !$pays) {
             return new JsonResponse(['message' => 'Une ou plusieurs entités liées n\'existent pas.'], Response::HTTP_BAD_REQUEST);
         }
 
@@ -59,7 +59,7 @@ class AppelOffreController extends AbstractController
         $appelOffre->setAppelOffreType($appelOffreType);
         $appelOffre->setMoyenLivraison($moyenLivraison);
         $appelOffre->setOrganismeDemandeur($organismeDemandeur);
-        $appelOffre->setLieu($lieu);
+        $appelOffre->setPays($pays);
 
         // Persist the entity
         $entityManager->persist($appelOffre);
@@ -118,10 +118,10 @@ class AppelOffreController extends AbstractController
         $appelOffreType = $entityManager->getRepository(AppelOffreType::class)->find($data['appelOffreTypeId'] ?? null);
         $moyenLivraison = $entityManager->getRepository(MoyenLivraison::class)->find($data['moyenLivraisonId'] ?? null);
         $organismeDemandeur = $entityManager->getRepository(OrganismeDemandeur::class)->find($data['organismeDemandeurId'] ?? null);
-        $lieu = $entityManager->getRepository(Lieu::class)->find($data['lieuId'] ?? null);
+        $pays = $entityManager->getRepository(Pays::class)->find($data['paysId'] ?? null);
     
         // Vérifier si les entités liées existent
-        if (!$appelOffreType || !$moyenLivraison || !$organismeDemandeur || !$lieu) {
+        if (!$appelOffreType || !$moyenLivraison || !$organismeDemandeur || !$pays) {
             return new JsonResponse(['message' => 'Une ou plusieurs entités liées n\'existent pas.'], Response::HTTP_BAD_REQUEST);
         }
     
@@ -135,7 +135,7 @@ class AppelOffreController extends AbstractController
         $appelOffre->setAppelOffreType($appelOffreType);
         $appelOffre->setMoyenLivraison($moyenLivraison);
         $appelOffre->setOrganismeDemandeur($organismeDemandeur);
-        $appelOffre->setLieu($lieu);
+        $appelOffre->setPays($pays);
     
         // Enregistrer les changements dans la base de données
         $entityManager->flush();
@@ -196,7 +196,7 @@ class AppelOffreController extends AbstractController
             'appelOffreTypeId' => $appelOffre->getAppelOffreType() ? $appelOffre->getAppelOffreType()->getId() : null,
             'moyenLivraisonId' => $appelOffre->getMoyenLivraison() ? $appelOffre->getMoyenLivraison()->getId() : null,
             'organismeDemandeurId' => $appelOffre->getOrganismeDemandeur() ? $appelOffre->getOrganismeDemandeur()->getId() : null,
-            'lieuId' => $appelOffre->getLieu() ?$appelOffre->getLieu()->getId() : null, 
+            'paysId' => $appelOffre->getPays() ?$appelOffre->getPays()->getId() : null, 
             // Ajoutez d'autres attributs de l'entité que vous souhaitez inclure dans la réponse JSON
         ];
     }
@@ -218,7 +218,7 @@ class AppelOffreController extends AbstractController
             'appelOffreTypeLibelle' => $appelOffre->getAppelOffreType() ? $appelOffre->getAppelOffreType()->getAppelOffreType(): null,
         'moyenLivraisonLibelle' => $appelOffre->getMoyenLivraison() ? $appelOffre->getMoyenLivraison()->getMoyenLivraison() : null,
         'organismeDemandeurLibelle' => $appelOffre->getOrganismeDemandeur() ? $appelOffre->getOrganismeDemandeur()->getOrganismeDemandeurLibelle() : null,
-        'lieu' => $appelOffre->getLieu() ?$appelOffre->getLieu()->getLieuNom() : null,
+        'pays' => $appelOffre->getPays() ?$appelOffre->getPays()->getPaysNom() : null,
        
         // Ajoutez d'autres attributs de l'entité que vous souhaitez inclure dans la réponse JSON
         ];
