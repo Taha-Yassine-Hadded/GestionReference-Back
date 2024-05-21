@@ -18,7 +18,7 @@ class AppelOffre
     #[ORM\Column]
     private ?int $id ;
 
-    #[ORM\Column]
+    #[ORM\Column(unique: true)]
     #[Assert\NotBlank]
     private ?int $appelOffreDevis ;
 

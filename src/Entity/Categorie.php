@@ -16,7 +16,7 @@ class Categorie
     #[ORM\Column(type: 'integer')]
     private ?int $id;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255,unique: true)]
     #[Assert\NotBlank]
     private ?string $categorie;
 

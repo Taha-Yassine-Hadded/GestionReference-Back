@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Controller\Api;
+use App\Repository\PaysRepository;
 
 use App\Controller\Api\UserController;
 use App\Entity\AppelOffre;
@@ -33,6 +34,13 @@ class AppelOffreController extends AbstractController
         // Récupérer les données JSON de la requête
         $data = json_decode($request->getContent(), true);
 
+        // Vérifier si un appel d'offres avec le même devis existe déjà
+    $existingAppelOffre = $entityManager->getRepository(AppelOffre::class)->findOneBy(['appelOffreDevis' => $data['appelOffreDevis']]);
+
+    if ($existingAppelOffre) {
+        return new JsonResponse(['message' => 'Un appel d\'offres avec ce devis existe déjà.'], Response::HTTP_CONFLICT);
+    }
+    
         // Créer une nouvelle instance d'AppelOffre
         $appelOffre = new AppelOffre();
 
@@ -233,4 +241,51 @@ class AppelOffreController extends AbstractController
             throw new AccessDeniedHttpException('Token d\'authentification manquant ou invalide');
         }
 }
+
+#[Route('/api/pourcentage-participation-par-pays', name: 'api_pourcentage_participation_par_pays', methods: ['GET'])]
+    public function pourcentageParticipationParPays(AppelOffreRepository $appelOffreRepository, PaysRepository $paysRepository): JsonResponse
+    {
+        
+
+        // Récupérer les données sur la participation par pays
+        $participationParPays = $appelOffreRepository->countAppelsOffresParticipationByPays();
+
+        // Calculer le nombre total d'appels d'offres avec participation
+        $totalAppelsOffres = array_sum(array_column($participationParPays, 'total'));
+
+        // Initialiser le tableau des pourcentages de participation par pays
+        $paysParticipation = [];
+
+        // Calculer les pourcentages de participation par pays
+        foreach ($participationParPays as $entry) {
+            $paysId = $entry['paysId'];
+            $nombreAppelsOffres = $entry['total'];
+
+            // Récupérer l'entité Pays associée à l'ID en utilisant le repository PaysRepository
+            $pays = $paysRepository->find($paysId);
+
+            // Vérifier si l'entité Pays est trouvée
+            if ($pays !== null) {
+                // Récupérer le nom du pays
+                $paysNom = $pays->getPaysNom(); // Assurez-vous que getNom() est la méthode correcte pour obtenir le nom du pays
+
+                // Calculer le pourcentage de participation
+                $pourcentage = ($nombreAppelsOffres / $totalAppelsOffres) * 100;
+
+                // Associer le pourcentage au nom du pays dans le tableau associatif
+                $paysParticipation[$paysNom] = round($pourcentage, 2); // Arrondir le pourcentage à deux décimales
+            }
+        }
+
+        // Retourner les pourcentages de participation par pays au format JSON
+        return new JsonResponse($paysParticipation);
+    }
+    #[Route('/api/participation-stats', name: 'api_participation_stats', methods: ['GET'])]
+    public function participationStats(AppelOffreRepository $appelOffreRepository, TokenStorageInterface $tokenStorage): JsonResponse
+    {
+        
+        $stats = $appelOffreRepository->countParticipations();
+
+        return new JsonResponse($stats);
+    }
 }

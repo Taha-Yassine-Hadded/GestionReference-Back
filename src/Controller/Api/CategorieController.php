@@ -22,17 +22,24 @@ class CategorieController extends AbstractController
     {
         $this->checkToken($tokenStorage);
         $data = json_decode($request->getContent(), true);
-
+    
+        // Vérifier si une catégorie avec le même nom existe déjà
+        $existingCategory = $entityManager->getRepository(Categorie::class)->findOneBy(['categorie' => $data['categorie']]);
+        if ($existingCategory) {
+            return new JsonResponse('Une catégorie avec ce nom existe déjà', Response::HTTP_CONFLICT);
+        }
+    
+        // Créer une nouvelle catégorie
         $categorie = new Categorie();
         $categorie->setCategorie($data['categorie']); // Assuming 'name' is the field for the category name
-
+    
         $entityManager->persist($categorie);
         $entityManager->flush();
-
+    
         return new JsonResponse('Catégorie créée avec succès', Response::HTTP_CREATED);
     }
 
-    #[Route('/api/getAll/categorie', name: 'api_categorie_get_all', methods: ['GET'])]
+#[Route('/api/getAll/categorie', name: 'api_categorie_get_all', methods: ['GET'])]
 public function index(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
 {
     $this->checkToken($tokenStorage);

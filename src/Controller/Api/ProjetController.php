@@ -17,6 +17,8 @@ use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use App\Repository\ProjetRepository;
+use App\Repository\LieuRepository;
 
 class ProjetController extends AbstractController
 {
@@ -237,5 +239,43 @@ class ProjetController extends AbstractController
             // Ajoutez d'autres attributs si nécessaire
             // Ajoutez d'autres attributs si nécessaire
         ];
+    }
+
+    #[Route('/api/pourcentage-participation-par-lieu', name: 'api_pourcentage_participation_par_lieu', methods: ['GET'])]
+    public function pourcentageParticipationParLieu(ProjetRepository $projetRepository, LieuRepository $lieuRepository): JsonResponse
+    {
+       
+        // Récupérer les données sur la participation par lieu
+        $participationParLieu = $projetRepository->countProjetsByLieu();
+
+        // Calculer le nombre total de projets avec participation
+        $totalProjets = array_sum(array_column($participationParLieu, 'total'));
+
+        // Initialiser le tableau des pourcentages de participation par lieu
+        $lieuParticipation = [];
+
+        // Calculer les pourcentages de participation par lieu
+        foreach ($participationParLieu as $entry) {
+            $lieuId = $entry['lieuId'];
+            $nombreProjets = $entry['total'];
+
+            // Récupérer l'entité Lieu associée à l'ID en utilisant le repository LieuRepository
+            $lieu = $lieuRepository->find($lieuId);
+
+            // Vérifier si l'entité Lieu est trouvée
+            if ($lieu !== null) {
+                // Récupérer le nom du lieu
+                $lieuNom = $lieu->getLieuNom(); // Assurez-vous que getNom() est la méthode correcte pour obtenir le nom du lieu
+
+                // Calculer le pourcentage de participation
+                $pourcentage = ($nombreProjets / $totalProjets) * 100;
+
+                // Associer le pourcentage au nom du lieu dans le tableau associatif
+                $lieuParticipation[$lieuNom] = round($pourcentage, 2); // Arrondir le pourcentage à deux décimales
+            }
+        }
+
+        // Retourner les pourcentages de participation par lieu au format JSON
+        return new JsonResponse($lieuParticipation);
     }
 }

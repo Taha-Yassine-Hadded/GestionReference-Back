@@ -18,21 +18,30 @@ use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 
 class PosteController extends AbstractController
 {
+  
     #[Route('/api/postes', name: 'api_poste_create', methods: ['POST'])]
-    public function create(Request $request, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
-    {
-        $this->checkToken($tokenStorage);
-        $data = json_decode($request->getContent(), true);
+public function create(Request $request, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
+{
+    $this->checkToken($tokenStorage);
+    $data = json_decode($request->getContent(), true);
 
-        $poste = new Poste();
-        $poste->setPosteNom($data['posteNom']);
-
-        $entityManager->persist($poste);
-        $entityManager->flush();
-
-        return new JsonResponse('Poste créé avec succès', Response::HTTP_CREATED);
+    // Recherche d'un poste existant avec le même nom
+    $existingPoste = $entityManager->getRepository(Poste::class)->findOneBy(['posteNom' => $data['posteNom']]);
+    if ($existingPoste !== null) {
+        return new JsonResponse(['message' => 'Le poste existe déjà'], Response::HTTP_CONFLICT);
     }
 
+    // Création d'une nouvelle instance de Poste
+    $poste = new Poste();
+    $poste->setPosteNom($data['posteNom']);
+
+    // Persistance de l'entité dans la base de données
+    $entityManager->persist($poste);
+    $entityManager->flush();
+
+    // Retourner une réponse JSON avec un message de succès
+    return new JsonResponse(['message' => 'Poste créé avec succès'], Response::HTTP_CREATED);
+}
     #[Route('/api/postes/{id}', name: 'api_poste_get', methods: ['GET'])]
     public function show(int $id, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {

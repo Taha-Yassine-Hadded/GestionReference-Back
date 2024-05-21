@@ -17,7 +17,7 @@ class NatureClient
     #[ORM\Column]
     private ?int $id;
 
-    #[ORM\Column(length: 255)] // Ajout de 'unique: true' pour garantir l'unicité
+    #[ORM\Column(length: 255, unique: true)] // Ajout de 'unique: true' pour garantir l'unicité
     #[Assert\NotBlank]
     private ?string  $natureClient;
 

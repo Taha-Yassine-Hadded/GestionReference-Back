@@ -26,6 +26,11 @@ class LieuController extends AbstractController
         $this->checkToken($tokenStorage);
         $requestData = json_decode($request->getContent(), true);
 
+           // Vérifier si le lieu existe déjà
+        $existingLieu = $entityManager->getRepository(Lieu::class)->findOneBy(['lieuNom' => $requestData['lieuNom']]);
+        if ($existingLieu) {
+            return new JsonResponse(['message' => 'Ce lieu existe déjà.'], Response::HTTP_CONFLICT);
+        }
         // Créer une nouvelle instance de Lieu
         $lieu = new Lieu();
         $lieu->setLieuNom($requestData['lieuNom']);
@@ -47,6 +52,14 @@ class LieuController extends AbstractController
 
         // Retourner une réponse JSON avec un message de succès
         return new JsonResponse(['message' => 'Lieu créé avec succès'], Response::HTTP_CREATED);
+    }
+
+    private function checkToken(TokenStorageInterface $tokenStorage): void
+    {
+        $token = $tokenStorage->getToken();
+        if (!$token) {
+            throw new AccessDeniedHttpException('Token d\'authentification manquant ou invalide');
+        }
     }
     #[Route('/api/getAll/lieux', name: 'api_lieux_get_all', methods: ['GET'])]
     public function getAll(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
@@ -130,14 +143,5 @@ class LieuController extends AbstractController
 
         return new JsonResponse('Lieu supprimé avec succès', Response::HTTP_OK);
     }
-    public function checkToken(TokenStorageInterface $tokenStorage): void
-    {
-        // Récupérer le token d'authentification de Symfony
-        $token = $tokenStorage->getToken();
-
-        // Vérifier si le token d'authentification est présent et est de type TokenInterface
-        if (!$token instanceof TokenInterface) {
-            throw new AccessDeniedHttpException('Token d\'authentification manquant ou invalide');
-        }
-}
+  
 }

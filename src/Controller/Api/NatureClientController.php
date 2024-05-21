@@ -18,19 +18,25 @@ use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 
 class NatureClientController extends AbstractController
 {
-    
     #[Route('/api/nature-clients', name: 'api_nature_client_create', methods: ['POST'])]
     public function create(Request $request, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
         $this->checkToken($tokenStorage);
         $data = json_decode($request->getContent(), true);
-
+    
+        // Vérifier si la nature de client existe déjà
+        $existingNatureClient = $entityManager->getRepository(NatureClient::class)->findOneBy(['natureClient' => $data['natureClient']]);
+        if ($existingNatureClient !== null) {
+            return new JsonResponse('La nature de client existe déjà', Response::HTTP_CONFLICT);
+        }
+    
+        // Créer une nouvelle nature de client
         $natureClient = new NatureClient();
-        $natureClient->setNatureClient($data['natureClient']); // Assuming 'natureClient' is the field for the nature client
-
+        $natureClient->setNatureClient($data['natureClient']);
+    
         $entityManager->persist($natureClient);
         $entityManager->flush();
-
+    
         return new JsonResponse('Nature client créée avec succès', Response::HTTP_CREATED);
     }
 

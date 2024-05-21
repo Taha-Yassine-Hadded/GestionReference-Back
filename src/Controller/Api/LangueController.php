@@ -24,6 +24,12 @@ class LangueController extends AbstractController
         $this->checkToken($tokenStorage);
         $data = json_decode($request->getContent(), true);
 
+        // Vérifier si la langue existe déjà
+        $existingLangue = $entityManager->getRepository(Langue::class)->findOneBy(['langueNom' => $data['langueNom']]);
+        if ($existingLangue) {
+            return new JsonResponse('Cette langue existe déjà', Response::HTTP_CONFLICT);
+        }
+
         $langue = new Langue();
         $langue->setLangueNom($data['langueNom']);
 
@@ -32,6 +38,7 @@ class LangueController extends AbstractController
 
         return new JsonResponse('Langue créée avec succès', Response::HTTP_CREATED);
     }
+
 
     #[Route('/api/get/langue/{id}', name: 'api_langue_get', methods: ['GET'])]
     public function show(int $id, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse

@@ -20,7 +20,23 @@ class PaysRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Pays::class);
     }
+ /**
+     * Trouve le nom d'un pays par son identifiant.
+     *
+     * @param int $paysId L'identifiant du pays
+     * @return string|null Le nom du pays ou null si non trouvé
+     */
+    public function findPaysNameById(int $paysId): ?string
+    {
+        $pays = $this->find($paysId);
 
+        // Vérifier si le pays existe
+        if ($pays) {
+            return $pays->getPaysNom();
+        }
+
+        return null;
+    }
 //    /**
 //     * @return Pays[] Returns an array of Pays objects
 //     */

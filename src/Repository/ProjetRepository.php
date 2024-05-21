@@ -20,7 +20,15 @@ class ProjetRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Projet::class);
     }
-
+    public function countProjetsByLieu()
+    {
+        return $this->createQueryBuilder('p')
+            ->select('l.id AS lieuId, COUNT(p.id) AS total')
+            ->join('p.lieu', 'l')
+            ->groupBy('l.id')
+            ->getQuery()
+            ->getResult();
+    }
 //    /**
 //     * @return Projet[] Returns an array of Projet objects
 //     */

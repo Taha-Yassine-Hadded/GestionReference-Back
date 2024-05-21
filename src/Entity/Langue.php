@@ -17,7 +17,7 @@ class Langue
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, unique: true)]
     #[Assert\NotBlank]
     private ?string $langueNom = null;
     

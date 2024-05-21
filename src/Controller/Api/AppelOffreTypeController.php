@@ -22,16 +22,22 @@ class AppelOffreTypeController extends AbstractController
     {
         $this->checkToken($tokenStorage);
         $data = json_decode($request->getContent(), true);
-
+    
+        // Vérifier si un type d'appel d'offre avec le même nom existe déjà
+        $existingType = $entityManager->getRepository(AppelOffreType::class)->findOneBy(['appelOffreType' => $data['appelOffreType']]);
+        if ($existingType) {
+            return new JsonResponse('Un type d\'appel d\'offre avec ce nom existe déjà', Response::HTTP_CONFLICT);
+        }
+    
+        // Créer un nouveau type d'appel d'offre
         $appelOffreType = new AppelOffreType();
         $appelOffreType->setAppelOffreType($data['appelOffreType']);
-
+    
         $entityManager->persist($appelOffreType);
         $entityManager->flush();
-
+    
         return new JsonResponse('Type d\'appel d\'offre créé avec succès', Response::HTTP_CREATED);
     }
-
     #[Route('/api/getAll/appeloffre/types', name: 'api_appel_offre_types', methods: ['GET'])]
 public function index(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
 {

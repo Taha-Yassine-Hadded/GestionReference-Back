@@ -4,6 +4,7 @@ namespace App\Controller\Api;
 
 use App\Entity\Pays;
 use App\Entity\Lieu;
+use App\Entity\AppelOffre;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,6 +17,7 @@ use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 
+
 class PaysController extends AbstractController
 {
     #[Route('/api/create/pays', name: 'api_pays_create', methods: ['POST'])]
@@ -23,19 +25,24 @@ class PaysController extends AbstractController
     {
         $this->checkToken($tokenStorage);
         $requestData = json_decode($request->getContent(), true);
-
+    
+        // Recherche d'un pays existant avec le même nom
+        $existingPays = $entityManager->getRepository(Pays::class)->findOneBy(['paysNom' => $requestData['paysNom']]);
+        if ($existingPays !== null) {
+            return new JsonResponse(['message' => 'Le pays existe déjà'], Response::HTTP_CONFLICT);
+        }
+    
         // Créer une nouvelle instance de Pays
         $pays = new Pays();
         $pays->setPaysNom($requestData['paysNom']);
-
+    
         // Persister l'entité dans la base de données
         $entityManager->persist($pays);
         $entityManager->flush();
-
+    
         // Retourner une réponse JSON avec un message de succès
         return new JsonResponse(['message' => 'Pays créé avec succès'], Response::HTTP_CREATED);
     }
-
     #[Route('/api/get/pays/{id}', name: 'api_pays_show', methods: ['GET'])]
     public function show(Pays $pays, TokenStorageInterface $tokenStorage): JsonResponse
     {
@@ -82,28 +89,7 @@ public function getAll(EntityManagerInterface $entityManager, TokenStorageInterf
         return new JsonResponse(['message' => 'Pays mis à jour avec succès'], Response::HTTP_OK);
     }
 
-    #[Route('/api/pays/{id}', name: 'api_pays_delete', methods: ['DELETE'])]
-    public function deletePays(Pays $pays, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
-    {
-        $this->checkToken($tokenStorage);
-        
-        // Récupérer tous les lieux qui ont ce pays
-        $lieux = $entityManager->getRepository(Lieu::class)->findBy(['pays' => $pays]);
-
-        // Mettre à jour les références à null dans tous les lieux liés
-        foreach ($lieux as $lieu) {
-            $lieu->setPays(null);
-            $entityManager->persist($lieu);
-        }
-        $entityManager->flush();
-
-        // Supprimer le pays
-        $entityManager->remove($pays);
-        $entityManager->flush();
-
-        return new JsonResponse(['message' => 'Pays supprimé avec succès'], Response::HTTP_OK);
-    }
-
+    
     public function checkToken(TokenStorageInterface $tokenStorage): void
     {
         // Récupérer le token d'authentification de Symfony
@@ -116,25 +102,34 @@ public function getAll(EntityManagerInterface $entityManager, TokenStorageInterf
 
 }
 #[Route('/api/delete/pays/{id}', name: 'api_pays_delete', methods: ['DELETE'])]
-public function delete(Pays $pays, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
-{
-    $this->checkToken($tokenStorage);
-    
-    // Récupérer tous les lieux qui ont ce pays
-    $lieux = $entityManager->getRepository(Lieu::class)->findBy(['pays' => $pays]);
+    public function delete(Pays $pays, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
+    {
+        $this->checkToken($tokenStorage);
+        
+        // Récupérer tous les lieux qui ont ce pays
+        $lieux = $entityManager->getRepository(Lieu::class)->findBy(['pays' => $pays]);
 
-    // Mettre à jour les références à null dans tous les lieux liés
-    foreach ($lieux as $lieu) {
-        $lieu->setPays(null);
-        $entityManager->persist($lieu);
+        // Mettre à jour les références à null dans tous les lieux liés
+        foreach ($lieux as $lieu) {
+            $lieu->setPays(null);
+            $entityManager->persist($lieu);
+        }
+
+        // Récupérer tous les appels d'offre qui ont ce pays
+        $appelOffres = $entityManager->getRepository(AppelOffre::class)->findBy(['pays' => $pays]);
+
+        // Mettre à jour les références à null dans tous les appels d'offre liés
+        foreach ($appelOffres as $appelOffre) {
+            $appelOffre->setPays(null);
+            $entityManager->persist($appelOffre);
+        }
+
+        $entityManager->flush();
+
+        // Supprimer le pays
+        $entityManager->remove($pays);
+        $entityManager->flush();
+
+        return new JsonResponse(['message' => 'Pays supprimé avec succès'], Response::HTTP_OK);
     }
-    $entityManager->flush();
-
-    // Supprimer le pays
-    $entityManager->remove($pays);
-    $entityManager->flush();
-
-    return new JsonResponse(['message' => 'Pays supprimé avec succès'], Response::HTTP_OK);
-}
-
 }

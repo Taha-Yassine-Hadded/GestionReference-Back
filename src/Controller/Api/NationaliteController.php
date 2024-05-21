@@ -16,6 +16,7 @@ use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 
+
 class NationaliteController extends AbstractController
 {
    
@@ -24,13 +25,20 @@ class NationaliteController extends AbstractController
     {
         $this->checkToken($tokenStorage);
         $data = json_decode($request->getContent(), true);
-
+    
+        // Vérifier si la nationalité existe déjà
+        $existingNationalite = $entityManager->getRepository(Nationalite::class)->findOneBy(['nationaliteLibelle' => $data['nationaliteLibelle']]);
+        if ($existingNationalite !== null) {
+            return new JsonResponse('La nationalité existe déjà', Response::HTTP_CONFLICT);
+        }
+    
+        // Créer une nouvelle nationalité
         $nationalite = new Nationalite();
         $nationalite->setNationaliteLibelle($data['nationaliteLibelle']);
-
+    
         $entityManager->persist($nationalite);
         $entityManager->flush();
-
+    
         return new JsonResponse('Nationalité créée avec succès', Response::HTTP_CREATED);
     }
 

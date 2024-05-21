@@ -17,20 +17,28 @@ use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 
 class OrganismeDemandeurController extends AbstractController
 {
+    
     #[Route('/api/create/organisme-demandeurs', name: 'api_organisme_demandeur_create', methods: ['POST'])]
-    public function create(Request $request, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
-    {
-        $this->checkToken($tokenStorage);
-        $data = json_decode($request->getContent(), true);
+public function create(Request $request, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
+{
+    $this->checkToken($tokenStorage);
+    $data = json_decode($request->getContent(), true);
 
-        $organismeDemandeur = new OrganismeDemandeur();
-        $organismeDemandeur->setOrganismeDemandeurLibelle($data['organismeDemandeurLibelle']);
-
-        $entityManager->persist($organismeDemandeur);
-        $entityManager->flush();
-
-        return new JsonResponse('Organisme demandeur créé avec succès', Response::HTTP_CREATED);
+    // Vérifier si l'organisme demandeur existe déjà
+    $existingOrganismeDemandeur = $entityManager->getRepository(OrganismeDemandeur::class)->findOneBy(['organismeDemandeurLibelle' => $data['organismeDemandeurLibelle']]);
+    if ($existingOrganismeDemandeur !== null) {
+        return new JsonResponse('L\'organisme demandeur existe déjà', Response::HTTP_CONFLICT);
     }
+
+    // Créer un nouvel organisme demandeur
+    $organismeDemandeur = new OrganismeDemandeur();
+    $organismeDemandeur->setOrganismeDemandeurLibelle($data['organismeDemandeurLibelle']);
+
+    $entityManager->persist($organismeDemandeur);
+    $entityManager->flush();
+
+    return new JsonResponse('Organisme demandeur créé avec succès', Response::HTTP_CREATED);
+}
 
     #[Route('/api/getAll/organisme-demandeurs', name: 'api_organisme_demandeur_get_all', methods: ['GET'])]
     public function getAll(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse

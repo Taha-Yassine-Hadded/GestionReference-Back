@@ -55,14 +55,23 @@ class SituationFamilialeController extends AbstractController
     {
         $this->checkToken($tokenStorage);
         $data = json_decode($request->getContent(), true);
-
+    
+        // Recherche d'une situation familiale existante avec le même libellé
+        $existingSituation = $entityManager->getRepository(SituationFamiliale::class)->findOneBy(['situationFamiliale' => $data['situationFamiliale']]);
+        if ($existingSituation !== null) {
+            return new JsonResponse(['message' => 'La situation familiale existe déjà'], Response::HTTP_CONFLICT);
+        }
+    
+        // Création d'une nouvelle instance de SituationFamiliale
         $situationFamiliale = new SituationFamiliale();
         $situationFamiliale->setSituationFamiliale($data['situationFamiliale']);
-
+    
+        // Persistance de l'entité dans la base de données
         $entityManager->persist($situationFamiliale);
         $entityManager->flush();
-
-        return new JsonResponse('Situation familiale créée avec succès', Response::HTTP_CREATED);
+    
+        // Retourner une réponse JSON avec un message de succès
+        return new JsonResponse(['message' => 'Situation familiale créée avec succès'], Response::HTTP_CREATED);
     }
 
     #[Route('/api/put/situations-familiales/{id}', name: 'api_situation_familiale_update', methods: ['PUT'])]

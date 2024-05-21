@@ -14,24 +14,33 @@ use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
-
+use App\Repository\MoyenLivraisonRepository;
 class MoyenLivraisonController extends AbstractController
 {
+    
     #[Route('/api/create/moyen-livraisons', name: 'api_moyen_livraison_create', methods: ['POST'])]
-    public function create(Request $request, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
+    public function create(Request $request, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage, MoyenLivraisonRepository $moyenLivraisonRepository): JsonResponse
     {
         $this->checkToken($tokenStorage);
         $data = json_decode($request->getContent(), true);
-
+    
+        // Vérifier si le moyen de livraison existe déjà
+        $existingMoyenLivraison = $moyenLivraisonRepository->findOneBy(['moyenLivraison' => $data['moyenLivraison']]);
+    
+        if ($existingMoyenLivraison) {
+            return new JsonResponse('Le moyen de livraison existe déjà', Response::HTTP_CONFLICT);
+        }
+    
+        // Créer un nouveau moyen de livraison
         $moyenLivraison = new MoyenLivraison();
         $moyenLivraison->setMoyenLivraison($data['moyenLivraison']);
-
+    
         $entityManager->persist($moyenLivraison);
         $entityManager->flush();
-
+    
         return new JsonResponse('Moyen de livraison créé avec succès', Response::HTTP_CREATED);
     }
-
+    
     #[Route('/api/getAll/moyen-livraisons', name: 'api_moyen_livraison_get_all', methods: ['GET'])]
 public function getAll(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
 {
