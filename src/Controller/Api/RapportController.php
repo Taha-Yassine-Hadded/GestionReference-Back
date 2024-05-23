@@ -58,108 +58,106 @@ class RapportController extends AbstractController
         if (!$projet) {
             throw $this->createNotFoundException('Le projet avec l\'ID ' . $id . ' n\'existe pas.');
         }
- // Récupérer le lieu associé au projet
- $lieu = $projet->getLieu();
 
- // Récupérer le pays à partir du lieu
- $pays = $lieu ? $lieu->getPays() : '';
+        // Récupérer le lieu associé au projet
+        $lieu = $projet->getLieu();
+
+        // Récupérer le pays à partir du lieu
+        $pays = $lieu ? $lieu->getPays() : '';
+
         $cssUrl = $this->generateUrl('serve_css', ['cssName' => 'pdf_styles.css'], UrlGeneratorInterface::ABSOLUTE_URL);
         $imageUrl = $this->generateUrl('serve_image', ['imageName' => 'xtensus-logo.png'], UrlGeneratorInterface::ABSOLUTE_URL);
 
         // Vérifier si la date de fin du projet est passée
-    $dateFinProjet = $projet->getProjetDateAchevement();
-    $dateActuelle = new DateTime();
-    $projetTermine = $dateActuelle > $dateFinProjet;
+        $dateFinProjet = $projet->getProjetDateAchevement();
+        $dateActuelle = new DateTime();
+        $projetTermine = $dateActuelle > $dateFinProjet;
 
-    $dateCreationPDF = new DateTime();
+        $dateCreationPDF = new DateTime();
 
+        // Récupérer les catégories du projet
+        $categories = [];
+        foreach ($projet->getCategories() as $categorie) {
+            $categories[] = [
+                'id' => $categorie->getId(),
+                'nom' => $categorie->getCategorieNom(), // Assurez-vous d'utiliser la bonne méthode pour récupérer le nom de la catégorie
+            ];
+        }
+
+        // Générer le contenu HTML du rapport
         $html = '
         <html>
             <head>
                 <meta charset="UTF-8">
                 <link rel="stylesheet" href="' . $cssUrl . '">
                 <style>
-                /* Vos styles CSS ici */
-                body {
-                    font-family: Arial, sans-serif;
-                    margin: 20px;
-                }
+                    /* Vos styles CSS ici */
+                    body {
+                        font-family: Arial, sans-serif;
+                        margin: 20px;
+                    }
+                    
+                    h1 {
+                        color:#358DCC;
+                        text-align: center;
+                        margin-bottom: 20px;
+                        border-bottom: 2px solid #333;
+                        padding-bottom: 10px;
+                    }
+                    
+                    p {
+                        font-size: 14px;
+                        color: #555;
+                        margin: 5px 0;
+                    }
+                    
+                    .field {
+                        border: 1px solid #ddd;
+                        padding: 10px;
+                        margin-bottom: 10px;
+                        border-radius: 5px;
+                        background-color: #f9f9f9;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                    }
+                    
+                    .field-label {
+                        flex: 1;
+                        font-weight: bold;
+                    }
                 
-                h1 {
-                    color:#358DCC;
-                    text-align: center;
-                    margin-bottom: 20px;
-                    border-bottom: 2px solid #333;
-                    padding-bottom: 10px;
-                }
+                    .field-value {
+                        flex: 2;
+                        text-align: center;
+                        margin-top: -15px;
+                    }
+                    .field-value1 {
+                        flex: 2;
+                        text-align: right;
+                        margin-top: -15px;
+                    }
                 
-                p {
-                    font-size: 14px;
-                    color: #555;
-                    margin: 5px 0;
-                }
-                
-                .header-image {
-                    text-align: center;
-                    margin-bottom: 20px;
-                }
-                
-                .header-image img {
-                    max-width: 100%;
-                    height: auto;
-                }
-                
-                .field {
-                    border: 1px solid #ddd;
-                    padding: 10px;
-                    margin-bottom: 10px;
-                    border-radius: 5px;
-                    background-color: #f9f9f9;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                }
-                
-                
-            
-                .field-label {
-                    flex: 1;
-                    font-weight: bold;
-                }
-            
-                .field-value {
-                    flex: 2;
-                    text-align: center;
-                    margin-top:-15px;
-                }
-               
-                .line {
-                    border-bottom: 1px solid #ddd;
-                    margin: 10px 0;
-                }
-                
-                /* Autres styles */
-            </style>
+                    .line {
+                        border-bottom: 1px solid #ddd;
+                        margin: 10px 0;
+                    }
+                    
+                    /* Autres styles */
+                </style>
             </head>
             <body>
-          
-          
-          
-            <!-- Le reste du contenu du rapport -->
-            <p><strong>Date de création du rapport : </strong>' . $dateCreationPDF->format('Y-m-d H:i:s') . '</p>
-            <p><strong>Status Projet : </strong>' . ($projetTermine ? 'terminé' : 'en cours') . '</p>
-    
+                <p><strong>Date de création du rapport : </strong>' . $dateCreationPDF->format('Y-m-d H:i:s') . '</p>
+                <p><strong>Status Projet : </strong>' . ($projetTermine ? 'terminé' : 'en cours') . '</p>
+        
                 <h1>Rapport du projet ' . $projet->getProjetLibelle() . '</h1>
-               
+                
                 <div class="line"></div>
                 <div class="field">
                     <div class="field-label">Référence du projet:</div>
                     <div class="field-value">' . $projet->getProjetReference() . '</div>
                 </div>
-                <div class="field">
-                    <div class="field-label">Catégorie du projet:</div>
-                    <div class="field-value">' . ($projet->getCategorie() ? $projet->getCategorie()->getCategorieNom() : '') . '</div>
-                </div>
+                
                 <div class="line"></div>
                 <div class="field">
                     <div class="field-label">Client du projet:</div>
@@ -170,7 +168,7 @@ class RapportController extends AbstractController
                     <div class="field-label">Description du projet:</div>
                     <div class="field-value">' . $projet->getProjetDescription() . '</div>
                 </div>
-               
+                
                 <div class="line"></div>
                 <div class="field">
                     <div class="field-label">Date de démarrage:</div>
@@ -192,19 +190,34 @@ class RapportController extends AbstractController
                     <div class="field-value">' . $projet->getProjetDescriptionServiceEffectivementRendus() . '</div>
                 </div>
                 <div class="field">
-        <div class="field-label">Lieu du projet:</div>
-        <div class="field-value">' .  ($projet->getLieu() ? $projet->getLieu()->getLieuNom() : '') . '</div>
-    </div>
+                    <div class="field-label">Lieu du projet:</div>
+                    <div class="field-value">' .  ($projet->getLieu() ? $projet->getLieu()->getLieuNom() : '') . '</div>
+                </div>
                 <div class="line"></div>
                 <div class="field">
-                <div class="field-label">Pays du projet:</div>
-                <div class="field-value">' . ($pays ? $pays->getPaysNom() : '') . '</div>
-            </div>
-                
-               
-            </body>
-        </html>';
+                    <div class="field-label">Pays du projet:</div>
+                    <div class="field-value">' . ($pays ? $pays->getPaysNom() : '') . '</div>
+                </div>';
 
+        // Ajouter les catégories au rapport
+        $categoriesString = '';
+        foreach ($categories as $categorie) {
+            $categoriesString .= $categorie['nom'] . ', ';
+        }
+
+        // Supprimer la virgule et l'espace en trop à la fin de la chaîne
+        $categoriesString = rtrim($categoriesString, ', ');
+        // Ajouter les catégories au rapport
+        $html .= '<div class="field">
+                    <div class="field-label">Catégories:</div>
+                    <div class="field-value">' . $categoriesString . '</div>
+                  </div>';
+
+        // Terminer la construction du HTML
+        $html .= '</body>
+                    </html>';
+
+        // Générer le PDF
         $options = new Options();
         $options->set('isHtml5ParserEnabled', true);
 
@@ -213,6 +226,7 @@ class RapportController extends AbstractController
         $dompdf->setPaper('A4', 'portrait');
         $dompdf->render();
 
+        // Récupérer le contenu du PDF et le retourner en réponse HTTP
         $output = $dompdf->output();
 
         return new Response($output, 200, [

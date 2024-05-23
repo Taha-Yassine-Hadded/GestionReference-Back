@@ -50,10 +50,16 @@ class Projet
     #[ORM\ManyToOne(targetEntity: Client::class)]
     private ?Client $client;
 
-    
-    #[ORM\ManyToOne(targetEntity: Categorie::class)]
-    private ?Categorie $categorie;
+    #[ORM\ManyToMany(targetEntity:  Categorie::class, inversedBy: 'projet')]
+    #[Assert\NotBlank]
+    private Collection $categories;
 
+    public function __construct()
+    {
+        $this->categories= new ArrayCollection();
+      
+      
+    }
     public function getId(): ?int
     {
         return $this->id;
@@ -167,18 +173,28 @@ class Projet
         return $this;
     }
 
-    
-    public function getCategorie(): ?Categorie
-    {
-        return $this->categorie;
+      /**
+ * @return Collection|Categorie[]
+ */
+    public function getCategories(): Collection
+{
+    return $this->categories;
+}
+
+public function addCategory(Categorie $category): self
+{
+    if (!$this->categories->contains($category)) {
+        $this->categories[] = $category;
     }
 
-    public function setCategorie(?Categorie $categorie): self
-    {
-        $this->categorie = $categorie;
+    return $this;
+}
 
-        return $this;
-    }
+public function removeCategory(Categorie $category): self
+{
+    $this->categories->removeElement($category);
 
+    return $this;
+}
 
 }

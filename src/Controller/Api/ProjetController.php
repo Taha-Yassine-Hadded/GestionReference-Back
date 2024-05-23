@@ -64,13 +64,15 @@ class ProjetController extends AbstractController
             $projet->setClient($client);
         }
     
-        // Associer le client
-        if (isset($data['categorieId'])) {
-            $categorie = $entityManager->getRepository(Categorie::class)->find($data['categorieId']);
-            if (!$categorie) {
-                return new JsonResponse(['message' => 'categorie not found'], Response::HTTP_NOT_FOUND);
+        // Associer les catégories au projet
+        if (isset($data['categorieIds']) && is_array($data['categorieIds'])) {
+            foreach ($data['categorieIds'] as $categorieId) {
+                $categorie = $entityManager->getRepository(Categorie::class)->find($categorieId);
+                if (!$categorie) {
+                    return new JsonResponse(['message' => 'Categorie not found'], Response::HTTP_NOT_FOUND);
+                }
+                $projet->addCategory($categorie);
             }
-            $projet->setCategorie($categorie);
         }
     
         // Persister et flush le projet
@@ -79,7 +81,6 @@ class ProjetController extends AbstractController
     
         return new JsonResponse('Projet créé avec succès', Response::HTTP_CREATED);
     }
-    
     #[Route('/api/getAll/projets', name: 'api_projet_get_all', methods: ['GET'])]
     public function getAll(EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
@@ -174,15 +175,17 @@ class ProjetController extends AbstractController
             $projet->setClient($client);
         }
 
-         // Associer le client
-         if (isset($data['categorieId'])) {
-            $categorie = $entityManager->getRepository(Categorie::class)->find($data['categorieId']);
+          // Add new categories
+    if (isset($data['categorieIds']) && is_array($data['categorieIds'])) {
+        foreach ($data['categorieIds'] as $categorieId) {
+            $categorie = $entityManager->getRepository(Categorie::class)->find($categorieId);
             if (!$categorie) {
-                return new JsonResponse(['message' => 'categorie not found'], Response::HTTP_NOT_FOUND);
+                return new JsonResponse(['message' => 'Categorie not found'], Response::HTTP_NOT_FOUND);
             }
-            $projet->setCategorie($categorie);
+            $projet->addCategory($categorie);
         }
-    
+    }
+
 
         $entityManager->flush();
 
@@ -204,6 +207,15 @@ class ProjetController extends AbstractController
     private function serializeProjet(Projet $projet): array
     {
         
+        $categories = [];
+    foreach ($projet->getCategories() as $categorie) {
+        // Ajoutez toutes les propriétés de la langue que vous souhaitez inclure
+        $categories[] = [
+            
+            'id' => $categorie->getId(), // Assurez-vous que c'est la bonne méthode pour récupérer le nom de la langue
+            // Ajoutez d'autres propriétés de langue si nécessaire
+        ];
+    }
 
         return [
             'id' => $projet->getId(),
@@ -216,13 +228,21 @@ class ProjetController extends AbstractController
             'projetDescriptionServiceEffectivementRendus' => $projet->getProjetDescriptionServiceEffectivementRendus(),
             'lieuId' => $projet->getLieu() ? $projet->getLieu()->getId() : null,
             'clientId' => $projet->getClient() ? $projet->getClient()->getId() : null,
-            'categorieId' => $projet->getCategorie() ? $projet->getCategorie()->getId() : null,// Incluez les catégories sérialisées ici
-            // Ajoutez d'autres attributs si nécessaire
+            'categories' => $categories,
         ];
     }
 
     private function serializeProjetNom(Projet $projet): array
     {
+        $categories = [];
+    foreach ($projet->getCategories() as $categorie) {
+        // Ajoutez toutes les propriétés de la langue que vous souhaitez inclure
+        $categories[] = [
+            
+            'categorieNom' => $categorie->getCategorieNom(), // Assurez-vous que c'est la bonne méthode pour récupérer le nom de la langue
+            // Ajoutez d'autres propriétés de langue si nécessaire
+        ];
+    }
        
         return [
             'id' => $projet->getId(),
@@ -235,7 +255,7 @@ class ProjetController extends AbstractController
             'projetDescriptionServiceEffectivementRendus' => $projet->getProjetDescriptionServiceEffectivementRendus(),
             'lieu' => $projet->getLieu() ? $projet->getLieu()->getLieuNom() : null,
             'client' => $projet->getClient() ? $projet->getClient()->getPersonneContact() : null,
-            'categorie' => $projet->getCategorie() ? $projet->getCategorie()->getCategorieNom() : null,
+            'categories' => $categories,
             // Ajoutez d'autres attributs si nécessaire
             // Ajoutez d'autres attributs si nécessaire
         ];
