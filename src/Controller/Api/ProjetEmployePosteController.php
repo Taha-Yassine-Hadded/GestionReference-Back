@@ -106,9 +106,9 @@ class ProjetEmployePosteController extends AbstractController
         return [
             'id' => $projetEmployePoste->getId(),
             'duree' => $projetEmployePoste->getDuree(),
-            'employe_id' => $projetEmployePoste->getEmploye()->getPersonneContact(),
-            'projet_id' => $projetEmployePoste->getProjet()->getProjetLibelle(),
-            'poste_id' => $projetEmployePoste->getPoste()->getPosteNom(),
+            'employe' => $projetEmployePoste->getEmploye()->getPersonneContact(),
+            'projet' => $projetEmployePoste->getProjet()->getProjetLibelle(),
+            'poste' => $projetEmployePoste->getPoste()->getPosteNom(),
             // Ajoutez d'autres propriétés de l'entité ProjetEmployePoste si nécessaire
         ];
     }

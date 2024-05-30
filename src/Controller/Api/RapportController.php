@@ -22,7 +22,7 @@ class RapportController extends AbstractController
         $this->projetRepository = $projetRepository;
     }
 
-    #[Route('/images/{imageName}', name: 'serve_image', requirements: ['imageName' => '.+'])]
+    #[Route('', name: 'serve_image', requirements: ['imageName' => '.+'])]
     public function serveImageAction(string $imageName): Response
     {
         $imagePath = $this->getParameter('kernel.project_dir') . '/public/images/' . $imageName;
@@ -134,6 +134,7 @@ class RapportController extends AbstractController
                     }
                     .field-value1 {
                         flex: 2;
+                       
                         text-align: right;
                         margin-top: -15px;
                     }
@@ -166,7 +167,7 @@ class RapportController extends AbstractController
                 <div class="line"></div>
                 <div class="field">
                     <div class="field-label">Description du projet:</div>
-                    <div class="field-value">' . $projet->getProjetDescription() . '</div>
+                    <div class="field-value1">' . $projet->getProjetDescription() . '</div>
                 </div>
                 
                 <div class="line"></div>
