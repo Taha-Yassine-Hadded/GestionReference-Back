@@ -29,7 +29,7 @@ class AppelOffreController extends AbstractController
     #[Route('/api/create/appel-offres', name: 'api_appel_offres_create', methods: ['POST'])]
     public function create(Request $request, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
-        $this->checkToken($tokenStorage);
+        //$this->checkToken($tokenStorage);
 
         // Récupérer les données JSON de la requête
         $data = json_decode($request->getContent(), true);
@@ -83,7 +83,7 @@ class AppelOffreController extends AbstractController
     #[Route('/api/get/appel-offres/{id}', name: 'api_appel_offres_get', methods: ['GET'])]
     public function getOne(int $id, AppelOffreRepository $appelOffreRepository, Request $request, TokenStorageInterface $tokenStorage): JsonResponse
     {
-        $this->checkToken($tokenStorage);
+        //$this->checkToken($tokenStorage);
 
         $appelOffre = $appelOffreRepository->find($id);
     
@@ -98,7 +98,7 @@ class AppelOffreController extends AbstractController
     #[Route('/api/getOne/appel-offres/{id}', name: 'api_appel_offres_get', methods: ['GET'])]
     public function getOneByName(int $id, AppelOffreRepository $appelOffreRepository, Request $request, TokenStorageInterface $tokenStorage): JsonResponse
     {
-        $this->checkToken($tokenStorage);
+        //$this->checkToken($tokenStorage);
 
         $appelOffre = $appelOffreRepository->find($id);
     
@@ -114,7 +114,7 @@ class AppelOffreController extends AbstractController
     #[Route('/api/put/appel-offres/{id}', name: 'api_appel_offres_update', methods: ['PUT'])]
     public function update(int $id, Request $request, EntityManagerInterface $entityManager, AppelOffreRepository $appelOffreRepository, TokenStorageInterface $tokenStorage): JsonResponse
     {
-        $this->checkToken($tokenStorage);
+        //$this->checkToken($tokenStorage);
         $data = json_decode($request->getContent(), true);
         $appelOffre = $appelOffreRepository->find($id);
     
@@ -154,7 +154,7 @@ class AppelOffreController extends AbstractController
     #[Route('/api/delete/appel-offres/{id}', name: 'api_appel_offres_delete', methods: ['DELETE'])]
     public function delete(int $id, EntityManagerInterface $entityManager, AppelOffreRepository $appelOffreRepository, TokenStorageInterface $tokenStorage): JsonResponse
     {
-        $this->checkToken($tokenStorage);
+        //$this->checkToken($tokenStorage);
         $appelOffre = $appelOffreRepository->find($id);
 
         if (!$appelOffre) {
@@ -171,7 +171,7 @@ class AppelOffreController extends AbstractController
     #[Route('/api/getAll/appelOffres', name: 'api_AppelOffre_index', methods: ['GET'])]
     public function index(EntityManagerInterface $entityManager , TokenStorageInterface $tokenStorage): JsonResponse
     {
-        $this->checkToken($tokenStorage);
+        //$this->checkToken($tokenStorage);
         // Retrieve all AppelOffre entities from the database
        
         $appelOffres = $entityManager->getRepository(AppelOffre::class)->findAll();
@@ -234,7 +234,7 @@ class AppelOffreController extends AbstractController
     public function checkToken(TokenStorageInterface $tokenStorage): void
     {
         // Récupérer le token d'authentification de Symfony
-        $token = $tokenStorage->getToken();
+        //$token = $tokenStorage->getToken();
 
         // Vérifier si le token d'authentification est présent et est de type TokenInterface
         if (!$token instanceof TokenInterface) {

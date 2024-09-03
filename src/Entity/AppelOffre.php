@@ -45,12 +45,12 @@ class AppelOffre
     #[ORM\ManyToOne(targetEntity: AppelOffreType::class)]
     #[ORM\JoinColumn(nullable: true)]
     private ?AppelOffreType $appelOffreType;
-    
-    
+
+
     #[ORM\ManyToOne(targetEntity: MoyenLivraison::class)]
     #[ORM\JoinColumn(nullable: true)]
     private ?MoyenLivraison $moyenLivraison;
-    
+
     #[ORM\ManyToOne(targetEntity: Pays::class)]
     #[ORM\JoinColumn(nullable: true)]
     private ?Pays $pays = null;
@@ -168,7 +168,7 @@ class AppelOffre
     public function setMoyenLivraison(?MoyenLivraison $moyenLivraison): self
     {
         $this->moyenLivraison = $moyenLivraison;
-    
+
         return $this;
     }
     public function getPays(): ?Pays
@@ -194,7 +194,7 @@ class AppelOffre
 
         return $this;
     }
-      /**
+    /**
      * @return Collection|UserNotification[]
      */
     public function getUserNotifications(): Collection
@@ -223,7 +223,7 @@ class AppelOffre
 
         return $this;
     }
-     /**
+    /**
      * @ORM\PreRemove
      */
     public function preRemove(LifecycleEventArgs $eventArgs)
